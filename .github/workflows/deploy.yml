@@ -1,0 +1,31 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: self-hosted  # self-hosted runner 사용
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle and Test
+        run: ./gradlew build --info
+
+      - name: Rename artifact to fixed name
+        shell: bash
+        run: |
+          JAR_PATH=$(ls build/libs/*.jar | head -n 1)
+          cp "$JAR_PATH" solicare.jar
+          echo "Packaged: $(ls -l solicare.jar)"
+
+      - name: Run builded runtime
+        shell: bash
+        run: |
+          nohup java -jar solicare.jar &
+          sleep 10  # Wait for the application to start

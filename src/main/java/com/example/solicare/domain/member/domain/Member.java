@@ -19,7 +19,7 @@ public class Member {
     private Long id;
 
     private String name;
-    private String elderlyName;
+    private String elderlyName; //
     private String password;
     @Column(nullable = false, unique = true)
     private String phoneNumber;

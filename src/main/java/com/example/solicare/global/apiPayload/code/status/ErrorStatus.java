@@ -15,6 +15,12 @@ public enum ErrorStatus implements BaseErrorCode {
     _FORBIDDEN             (HttpStatus.FORBIDDEN,           "COMMON403", "금지된 요청입니다."),
 
 
+    /* ===== 회원 도메인 ===== */
+    _DUPLICATE_MEMBER     (HttpStatus.BAD_REQUEST,    "MEMBER400", "이미 가입된 회원입니다."),
+    _INVALID_CREDENTIALS  (HttpStatus.UNAUTHORIZED,   "MEMBER401", "아이디 또는 비밀번호가 올바르지 않습니다."),
+    _MEMBER_NOT_FOUND     (HttpStatus.NOT_FOUND,      "MEMBER404", "해당 회원을 찾을 수 없습니다."),
+
+
     /* ===== 검증/리소스 ===== */
     VALIDATION_ERROR ("COMMON400A", "유효성 검증 실패"),
     NOT_FOUND        (HttpStatus.NOT_FOUND, "COMMON404", "리소스를 찾을 수 없습니다.")
