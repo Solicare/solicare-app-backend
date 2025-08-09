@@ -18,38 +18,44 @@ import java.util.Arrays;
 
 @Configuration
 public class SecurityConfig {
+
     private final JwtAuthFilter jwtAuthFilter;
+
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
+
     @Bean
-    public SecurityFilterChain myFilter(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .cors(cors->cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable) //csrf 비활성화
-                .httpBasic(AbstractHttpConfigurer::disable) //HTTP Basic 비활성화
-//                특정 url패턴에 대해서는 Authentication객체 요구하지 않음.(인증처리 제외)
-                .authorizeHttpRequests(a -> a.requestMatchers("/member/create", "/member/doLogin", "/connect/**").permitAll().anyRequest().authenticated())
-                .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //세션방식을 사용하지 않겠다라는 의미
+    public SecurityFilterChain myFilter(HttpSecurity http) throws Exception {
+        return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        // 컨트롤러 실제 매핑과 일치시키기
+                        .requestMatchers("/member/join", "/member/login", "/connect/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource(){
+    CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("*")); //모든 HTTP메서드 허용
-        configuration.setAllowedHeaders(Arrays.asList("*")); //모든 헤더값 허용
-        configuration.setAllowCredentials(true); //자격증명허용
+        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); //모든 url에 패턴에 대해 cors 허용 설정
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
     @Bean
-    public PasswordEncoder makePassword(){
+    public PasswordEncoder makePassword() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 }

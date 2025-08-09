@@ -19,22 +19,20 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     public Member create(MemberSaveRequestDTO memberSaveRequestDTO){
-
         if(memberRepository.findByPhoneNumber(memberSaveRequestDTO.getPhoneNumber()).isPresent()){
             throw new DuplicateMemberException();
         }
-        // 새로운 멤버 생성 후 저장하기
-        Member newMember=Member.builder()
+
+        Member newMember = Member.builder()
                 .name(memberSaveRequestDTO.getName())
                 .elderlyName(memberSaveRequestDTO.getElderlyName())
                 .phoneNumber(memberSaveRequestDTO.getPhoneNumber())
-                .password(memberSaveRequestDTO.getPassword())
+                .password(passwordEncoder.encode(memberSaveRequestDTO.getPassword())) // ★ 인코딩 추가
                 .build();
-        Member member=memberRepository.save(newMember);
 
-        return member;
-
+        return memberRepository.save(newMember);
     }
+
 
     public Member login(MemberLoginRequestDTO memberLoginRequestDTO){
         // 회원 존재 여부 확인

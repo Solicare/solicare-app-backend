@@ -1,40 +1,44 @@
 package com.example.solicare.global.auth;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.Data;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
 
-    private final String secretKey;
-    private final int expiration;
-    private Key SECRET_KEY;
+    private final SecretKey SIGNING_KEY;
+    private final int expirationMinutes;
 
-    public JwtTokenProvider(@Value("${jwt.secretKey}") String secretKey, @Value("${jwt.expiration}") int expiration) {
-        this.secretKey = secretKey;
-        this.expiration = expiration;
-        this.SECRET_KEY = new SecretKeySpec(java.util.Base64.getDecoder().decode(secretKey), SignatureAlgorithm.HS512.getJcaName());
+    public JwtTokenProvider(
+            @Value("${jwt.secretKey}") String secretKey,
+            @Value("${jwt.expiration}") int expirationMinutes
+    ) {
+        // Base64 디코딩 후 HMAC 키 생성 (AuthFilter와 동일)
+        this.SIGNING_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+        this.expirationMinutes = expirationMinutes;
     }
 
-    public String createToken(String email, String role){
-        Claims claims = Jwts.claims().setSubject(email);
-        claims.put("role", role);
+    // subject에는 현재 phoneNumber를 넣어 사용
+    public String createToken(String subject, String role) {
         Date now = new Date();
-        String token = Jwts.builder()
-                .setClaims(claims)
+        return Jwts.builder()
+                .setClaims(createClaims(subject, role))
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime()+expiration*60*1000L))
-                .signWith(SECRET_KEY)
+                .setExpiration(new Date(now.getTime() + expirationMinutes * 60 * 1000L))
+                .signWith(SIGNING_KEY) // 키에서 알고리즘 자동 선택
                 .compact();
-        return token;
+    }
+
+    private Claims createClaims(String subject, String role) {
+        Claims claims = Jwts.claims().setSubject(subject);
+        claims.put("role", role);
+        return claims;
     }
 }
