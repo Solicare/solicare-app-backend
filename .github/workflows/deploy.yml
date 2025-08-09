@@ -10,8 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Gradle 캐시 설정
-      - name: Set up Gradle cache
+      # ---------------------------------------------
+      # 1. Gradle 캐시 설정
+      # ---------------------------------------------
+      - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
           path: |
@@ -21,7 +23,9 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # Generate properties from secrets
+      # ---------------------------------------------
+      # 2. 시크릿 기반 properties 파일 생성
+      # ---------------------------------------------
       - name: Generate properties from secrets
         shell: bash
         run: |
@@ -35,36 +39,40 @@ jobs:
           SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
-      # 빌드 및 테스트
-      - name: Build with Gradle and Test
+      # ---------------------------------------------
+      # 3. 빌드 및 테스트
+      # ---------------------------------------------
+      - name: Build and Test with Gradle
+        shell: bash
         run: |
           chmod +x gradlew
           ./gradlew clean bootJar --info
-
-      # jar 파일 이름 고정
-      - name: Rename artifact to fixed name
-        shell: bash
-        run: |
           JAR_PATH=$(ls build/libs/*.jar | head -n 1)
           cp "$JAR_PATH" solicare.jar
           echo "Packaged: $(ls -l solicare.jar)"
 
-      # 8081 포트에서 임시로 실행 테스트
+      # ---------------------------------------------
+      # 4. 8081 포트 임시 실행 및 헬스체크
+      # ---------------------------------------------
       - name: Test run on port 8081
         shell: bash
         run: |
+          kill $(lsof -ti:8081)
           nohup java -jar -Dserver.port=8081 solicare.jar > test_app.log 2>&1 &
-          sleep 10
-          if curl -sSf http://localhost:8081/actuator/health > /dev/null; then
-            echo "[SUCCESS] App started successfully on 8081."
-            kill $(lsof -ti:8081)
-            rm -f test_app.log
-          else
-            echo "[ERROR] App failed to start on 8081."
-            cat test_app.log
-            rm -f test_app.log
-            exit 1
-          fi
+          for i in {1..10}; do
+            if curl -sSf http://localhost:8081/actuator/health > /dev/null; then
+              echo "[SUCCESS] App started successfully on 8081."
+              kill $(lsof -ti:8081)
+              rm -f test_app.log
+              exit 0
+            fi
+            echo "Waiting for actuator on 8081... ($i)"
+            sleep 3
+          done
+          echo "[ERROR] App failed to start on 8081."
+          cat test_app.log
+          rm -f test_app.log
+          exit 1
 
       # 기존 프로세스 종료 및 jar 실행
       - name: Stop previous application and Run builded runtime
@@ -85,7 +93,7 @@ jobs:
       - name: Check if app is running on 8080
         shell: bash
         run: |
-          for i in {1..3}; do
+          for i in {1..10}; do
             if curl -sSf http://localhost:8080/actuator/health > /dev/null; then
               echo "App is running on 8080!"
               exit 0
