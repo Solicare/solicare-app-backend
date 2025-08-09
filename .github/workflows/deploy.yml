@@ -71,3 +71,18 @@ jobs:
         shell: bash
         run: |
           cat /home/ubuntu/actions-runner/_work/solicare-app-backend/solicare-app-backend/app.log || true
+
+      # 8080 포트에서 정상 동작 확인
+      - name: Check if app is running on 8080
+        shell: bash
+        run: |
+          for i in {1..3}; do
+            if curl -sSf http://localhost:8080/actuator/health > /dev/null; then
+              echo "App is running on 8080!"
+              exit 0
+            fi
+            echo "Waiting for app to be ready... ($i)"
+            sleep 3
+          done
+          echo "ERROR: App is not running on 8080 or /actuator/health is not available." >&2
+          exit 1
