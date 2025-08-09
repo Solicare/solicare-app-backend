@@ -7,12 +7,6 @@ on:
 jobs:
   build:
     runs-on: self-hosted  # self-hosted runner 사용
-    env:
-      ENV_TEST: ${{ secrets.TEST }}
-      JWT_SECRETKEY: ${{ secrets.JWT_SECRET }}
-      SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
-      SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
-      SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -27,13 +21,25 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      # gradlew 실행권한 부여
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      # Generate properties from secrets
+      - name: Generate properties from secrets
+        shell: bash
+        run: |
+          echo "jwt.secretKey=$JWT_SECRETKEY" > src/main/resources/configs/auth/jwt.properties
+          echo "spring.datasource.url=$SPRING_DATASOURCE_URL" > src/main/resources/configs/database/mariadb.properties
+          echo "spring.datasource.username=$SPRING_DATASOURCE_USERNAME" >> src/main/resources/configs/database/mariadb.properties
+          echo "spring.datasource.password=$SPRING_DATASOURCE_PASSWORD" >> src/main/resources/configs/database/mariadb.properties
+        env:
+          JWT_SECRETKEY: ${{ secrets.JWT_SECRET }}
+          SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       # 빌드 및 테스트
       - name: Build with Gradle and Test
-        run: ./gradlew clean bootJar --info
+        run: |
+          chmod +x gradlew
+          ./gradlew clean bootJar --info
 
       # jar 파일 이름 고정
       - name: Rename artifact to fixed name
@@ -72,10 +78,6 @@ jobs:
               kill $PID
               sleep 5
             fi
-            export JWT_SECRETKEY='${{ secrets.JWT_SECRET }}' &&
-            export SPRING_DATASOURCE_URL='${{ secrets.DB_URL }}' &&
-            export SPRING_DATASOURCE_USERNAME='${{ secrets.DB_USERNAME }}' &&
-            export SPRING_DATASOURCE_PASSWORD='${{ secrets.DB_PASSWORD }}' &&
             nohup java -jar solicare.jar > app.log 2>&1 &
           "
 
