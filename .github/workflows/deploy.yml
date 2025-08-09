@@ -7,22 +7,59 @@ on:
 jobs:
   build:
     runs-on: self-hosted  # self-hosted runner 사용
-
+    env:
+      ENV_TEST: ${{ secrets.TEST }}
+      JWT_SECRETKEY: ${{ secrets.JWT_SECRET }}
+      SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
+      SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
+      SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Print env for debug
+        shell: bash
+        run: |
+            echo "[DEBUG] Running on self-hosted runner"
+            echo "[DEBUG] ENV_TEST: $ENV_TEST"
+
+      # Gradle 캐시 설정
+      - name: Set up Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      # gradlew 실행권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # 빌드 및 테스트
       - name: Build with Gradle and Test
         run: ./gradlew build --info
 
+      # jar 파일 이름 고정
       - name: Rename artifact to fixed name
         shell: bash
         run: |
           JAR_PATH=$(ls build/libs/*.jar | head -n 1)
           cp "$JAR_PATH" solicare.jar
           echo "Packaged: $(ls -l solicare.jar)"
+
+      # jar 실행 (기존 프로세스 종료 및 재시작 포함)
+      - name: Stop previous application (if running)
+        shell: bash
+        run: |
+          PID=$(lsof -ti:3000 || true)
+          if [ -n "$PID" ]; then
+            echo "Stopping previous application (PID: $PID)"
+            kill $PID
+            sleep 5
+          fi
+          
 
       - name: Run builded runtime
         shell: bash
