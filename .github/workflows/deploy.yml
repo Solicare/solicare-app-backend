@@ -14,10 +14,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build -x test
+      - name: Build with Gradle and Test
+        run: ./gradlew build --info
 
       - name: Rename artifact to fixed name
         shell: bash
