@@ -16,12 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Print env for debug
-        shell: bash
-        run: |
-            echo "[DEBUG] Running on self-hosted runner"
-            echo "[DEBUG] ENV_TEST: $ENV_TEST"
-
       # Gradle 캐시 설정
       - name: Set up Gradle cache
         uses: actions/cache@v4
@@ -39,7 +33,7 @@ jobs:
 
       # 빌드 및 테스트
       - name: Build with Gradle and Test
-        run: ./gradlew build --info
+        run: ./gradlew clean bootJar --info
 
       # jar 파일 이름 고정
       - name: Rename artifact to fixed name
@@ -49,7 +43,7 @@ jobs:
           cp "$JAR_PATH" solicare.jar
           echo "Packaged: $(ls -l solicare.jar)"
 
-      # jar 실행 (기존 프로세스 종료 및 재시작 포함)
+      # 기존 프로세스 종료
       - name: Stop previous application (if running)
         shell: bash
         run: |
@@ -59,10 +53,10 @@ jobs:
             kill $PID
             sleep 5
           fi
-          
 
+      # jar 실행
       - name: Run builded runtime
         shell: bash
         run: |
           nohup java -jar solicare.jar &
-          sleep 15  # Wait for the application to start
+          sleep 10  # Wait for the application to start
