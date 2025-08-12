@@ -6,9 +6,13 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Optional;
+
+@Slf4j
 @Configuration
 public class SwaggerConfig {
 
@@ -31,9 +35,12 @@ public class SwaggerConfig {
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .addServersItem(new Server().url("/"))
+                .openapi("3.0.1")
                 .info(info)
                 .addSecurityItem(securityRequirement)
-                .components(components);
+                .components(components)
+                .addServersItem(new Server()
+                .url(String.format("localhost:%s", Optional.ofNullable(System.getenv("server.port")).orElse("8080")))
+                .description("Local server"));
     }
 }

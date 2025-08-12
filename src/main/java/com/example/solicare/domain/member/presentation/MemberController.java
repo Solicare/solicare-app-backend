@@ -7,6 +7,8 @@ import com.example.solicare.domain.member.domain.MemberService;
 import com.example.solicare.global.apiPayload.ApiResponse;
 import com.example.solicare.global.apiPayload.code.status.SuccessStatus;
 import com.example.solicare.global.auth.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,12 @@ public class MemberController {
     private final MemberService memberService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "회원가입 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "중복 회원")
+    })
     @PostMapping("/join")
     public ResponseEntity<?> memberCreate(
             @RequestBody @Valid MemberSaveRequestDTO memberSaveRequestDTO) {
@@ -32,6 +40,11 @@ public class MemberController {
                 ApiResponse.onSuccess(SuccessStatus._OK, member));
     }
 
+    @Operation(summary = "로그인", description = "전화번호와 비밀번호로 로그인합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "자격 증명 실패")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody @Valid MemberLoginRequestDTO memberLoginRequestDTO) {
