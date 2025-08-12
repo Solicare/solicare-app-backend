@@ -43,8 +43,8 @@ public class SwaggerConfig {
                         .url("dev-api.solicare.kro.kr")
                         .description("Development server"))
                 .addServersItem(new Server()
-                        .url("dev-api.solicare.kro.kr")
-                        .description("Development server"))
+                        .url("api.solicare.kro.kr")
+                        .description("Production server"))
                 .addServersItem(new Server()
                         .url(String.format("localhost:%s", Optional.ofNullable(System.getenv("server.port")).orElse("8080")))
                         .description("Local server"));
