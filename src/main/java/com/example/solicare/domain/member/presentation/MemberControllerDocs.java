@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/member1")
 public class MemberControllerDocs {
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")

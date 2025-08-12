@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         // actuator 엔드포인트 인증 없이 허용
-                        .requestMatchers("/", "/actuator/**", "/member/join", "/member/login").permitAll()
+                        .requestMatchers("/", "/swagger-ui/**", "/actuator/**", "/member/join", "/member/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
