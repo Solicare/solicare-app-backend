@@ -37,6 +37,9 @@ public class Member {
     @Column(name = "special_note", length = 500)
     private String specialNote;      // ★ 추가 (nullable 허용)
 
+    private int guardianHeartRate;   // 심박수 (bpm)
+    private double guardianTemperature;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.USER;
