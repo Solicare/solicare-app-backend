@@ -26,7 +26,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private Gender gender;           // ★ 추가
+    private Gender gender=Gender.OTHER;           // ★ 추가
 
     @Column(nullable = false, length = 255)
     private String address;          // ★ 추가
