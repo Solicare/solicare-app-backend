@@ -1,12 +1,14 @@
 package com.example.solicare.domain.member.presentation;
 
 import com.example.solicare.domain.member.application.dto.MemberLoginRequestDTO;
+import com.example.solicare.domain.member.application.dto.MemberResponseDTO;
 import com.example.solicare.domain.member.application.dto.MemberSaveRequestDTO;
 import com.example.solicare.domain.member.domain.Member;
 import com.example.solicare.domain.member.domain.MemberService;
 import com.example.solicare.global.apiPayload.ApiResponse;
 import com.example.solicare.global.apiPayload.code.status.SuccessStatus;
 import com.example.solicare.global.auth.JwtTokenProvider;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,10 +28,14 @@ public class MemberController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/join")
-    public ResponseEntity<?> memberCreate(@RequestBody MemberSaveRequestDTO memberSaveRequestDTO){
-        Member member = memberService.create(memberSaveRequestDTO);
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK,member));
+    public ResponseEntity<?> memberCreate(@RequestBody @Valid MemberSaveRequestDTO dto){
+        Member member = memberService.create(dto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(
+                SuccessStatus._OK,
+                MemberResponseDTO.from(member) // ← 엔티티 대신 응답 DTO
+        ));
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody MemberLoginRequestDTO memberLoginRequestDTO){

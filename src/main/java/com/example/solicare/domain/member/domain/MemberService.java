@@ -28,6 +28,10 @@ public class MemberService {
                 .elderlyName(memberSaveRequestDTO.getElderlyName())
                 .phoneNumber(memberSaveRequestDTO.getPhoneNumber())
                 .password(passwordEncoder.encode(memberSaveRequestDTO.getPassword())) // ★ 인코딩 추가
+                .gender(memberSaveRequestDTO.getGender()) // ★ 성별 추가
+                .address(memberSaveRequestDTO.getAddress()) // ★ 주소 추가
+                .age(memberSaveRequestDTO.getAge()) // ★ 나이 추가
+                .specialNote(memberSaveRequestDTO.getSpecialNote()) // ★ 특이사항 추가
                 .build();
 
         return memberRepository.save(newMember);
