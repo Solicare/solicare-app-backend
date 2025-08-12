@@ -18,8 +18,8 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public Member create(MemberSaveRequestDTO memberSaveRequestDTO){
-        if(memberRepository.findByPhoneNumber(memberSaveRequestDTO.getPhoneNumber()).isPresent()){
+    public Member create(MemberSaveRequestDTO memberSaveRequestDTO) {
+        if (memberRepository.findByPhoneNumber(memberSaveRequestDTO.getPhoneNumber()).isPresent()) {
             throw new DuplicateMemberException();
         }
 
@@ -37,13 +37,12 @@ public class MemberService {
         return memberRepository.save(newMember);
     }
 
-
-    public Member login(MemberLoginRequestDTO memberLoginRequestDTO){
+    public Member login(MemberLoginRequestDTO memberLoginRequestDTO) {
         // 회원 존재 여부 확인
-        Member member=memberRepository.findByPhoneNumber(memberLoginRequestDTO.getPhoneNumber())
+        Member member = memberRepository.findByPhoneNumber(memberLoginRequestDTO.getPhoneNumber())
                 .orElseThrow(MemberNotFoundException::new);
 
-        if(!passwordEncoder.matches(memberLoginRequestDTO.getPassword(), member.getPassword())){
+        if (!passwordEncoder.matches(memberLoginRequestDTO.getPassword(), member.getPassword())) {
             throw new InvalidCredentialsException();
         }
         return member;
