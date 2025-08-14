@@ -4,11 +4,33 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+  deployments: write
+  statuses: write
+
 jobs:
   build:
     runs-on: self-hosted  # self-hosted runner 사용
     steps:
       - uses: actions/checkout@v4
+
+      # GitHub Deployment 시작
+      - name: Create GitHub Deployment
+        id: deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'aws-lightsail-solicare-instance',
+              transient_environment: false,
+              auto_inactive: true,
+              required_contexts: []
+            });
+            core.setOutput('deployment_id', deployment.data.id)
 
       # ---------------------------------------------
       # 1. Gradle 캐시 설정
@@ -52,55 +74,90 @@ jobs:
           echo "Packaged: $(ls -l solicare.jar)"
 
       # ---------------------------------------------
-      # 4. 8081 포트 임시 실행 및 헬스체크
+      # 4. 8081 포트 테스트 실행 및 Health Check
       # ---------------------------------------------
       - name: Test run on port 8081
         shell: bash
         run: |
-          kill $(lsof -ti:8081)
+          set +e  # set -e 비활성화로 에러 발생 시 즉시 종료 방지
+          echo "[INFO] 8081 포트 프로세스 종료 시도"
+          lsof -ti:8081 | xargs -r kill
+          echo "[INFO] 임시 서버 실행 시작"
           nohup java -jar -Dserver.port=8081 solicare.jar > test_app.log 2>&1 &
+          sleep 2
+          echo "[INFO] health check 시작"
           for i in {1..10}; do
             if curl -sSf http://localhost:8081/actuator/health > /dev/null; then
-              echo "[SUCCESS] App started successfully on 8081."
-              kill $(lsof -ti:8081)
+              lsof -ti:8081 | xargs -r kill
+              cat test_app.log
               rm -f test_app.log
+              echo "[SUCCESS] App started successfully on 8081."
               exit 0
             fi
             echo "Waiting for actuator on 8081... ($i)"
             sleep 3
           done
-          echo "[ERROR] App failed to start on 8081."
           cat test_app.log
           rm -f test_app.log
+          echo "[ERROR] App failed to start on 8081."
           exit 1
 
-      # 기존 프로세스 종료 및 jar 실행
+      # ---------------------------------------------
+      # 5. 기존 프로세스 종료 및 배포
+      # ---------------------------------------------
       - name: Stop previous application and Run builded runtime
         shell: bash
         run: |
           ssh localhost "
             cd /home/ubuntu/actions-runner/_work/solicare-app-backend/solicare-app-backend &&
-            PID=\$(lsof -ti:8080 || true)
-            if [ -n \"$PID\" ]; then
-              echo 'Stopping previous application (PID: '$PID')'
-              kill $PID
-              sleep 5
-            fi
+            lsof -ti:8080 | xargs -r kill
             nohup java -jar solicare.jar > app.log 2>&1 &
+            sleep 5
           "
 
-      # 8080 포트에서 정상 동작 확인
-      - name: Check if app is running on 8080
+      # ---------------------------------------------
+      # 6. 8080 포트 Health Check 및 배포 상태 업데이트
+      # ---------------------------------------------
+      - name: Health Check on port 8080
         shell: bash
         run: |
           for i in {1..10}; do
             if curl -sSf http://localhost:8080/actuator/health > /dev/null; then
-              echo "App is running on 8080!"
+              echo "[SUCCESS] App deployed successfully on 8080."
               exit 0
             fi
-            echo "Waiting for app to be ready... ($i)"
+            echo "Waiting for actuator on 8080... ($i)"
             sleep 3
           done
-          echo "ERROR: App is not running on 8080 or /actuator/health is not available." >&2
           cat /home/ubuntu/actions-runner/_work/solicare-app-backend/solicare-app-backend/app.log || true
+          echo "[ERROR] App is not running on 8080 or /actuator/health is not available." >&2
           exit 1
+
+      # Deployment status update (success)
+      - name: Deployment Status Success
+        if: success() && steps.deployment.outputs.deployment_id != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ steps.deployment.outputs.deployment_id }},
+              state: 'success',
+              environment_url: 'https://api.solicare.kro.kr',
+              log_url: 'https://github.com/Solicare/solicare-app-backend/actions/runs/${{ github.run_id }}'
+            })
+
+      # Deployment status update (failure)
+      - name: Deployment Status Failure
+        if: failure() && steps.deployment.outputs.deployment_id != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: ${{ steps.deployment.outputs.deployment_id }},
+              state: 'failure',
+              log_url: 'https://github.com/Solicare/solicare-app-backend/actions/runs/${{ github.run_id }}'
+            })
