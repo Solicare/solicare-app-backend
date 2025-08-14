@@ -1,4 +1,4 @@
-package com.example.solicare.global.config;
+package com.example.solicare.domain.member.presentation;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class RootController {
     @GetMapping("/")
     public String root() {
-        return "Hello, Main Page!";
+        return "Welcome! This is the default API page of SoliCare.";
     }
 }
-
