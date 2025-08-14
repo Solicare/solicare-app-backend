@@ -57,21 +57,27 @@ jobs:
       - name: Test run on port 8081
         shell: bash
         run: |
-          kill $(lsof -ti:8081)
+          set +e  # set -e 비활성화로 에러 발생 시 즉시 종료 방지
+          echo "[INFO] 8081 포트 프로세스 종료 시도"
+          lsof -ti:8081 | xargs -r kill
+          echo "[INFO] 임시 서버 실행 시작"
           nohup java -jar -Dserver.port=8081 solicare.jar > test_app.log 2>&1 &
+          sleep 2
+          echo "[INFO] health check 시작"
           for i in {1..10}; do
             if curl -sSf http://localhost:8081/actuator/health > /dev/null; then
-              echo "[SUCCESS] App started successfully on 8081."
-              kill $(lsof -ti:8081)
+              lsof -ti:8081 | xargs -r kill
+              cat test_app.log
               rm -f test_app.log
+              echo "[SUCCESS] App started successfully on 8081."
               exit 0
             fi
             echo "Waiting for actuator on 8081... ($i)"
             sleep 3
           done
-          echo "[ERROR] App failed to start on 8081."
           cat test_app.log
           rm -f test_app.log
+          echo "[ERROR] App failed to start on 8081."
           exit 1
 
       # 기존 프로세스 종료 및 jar 실행
@@ -80,13 +86,9 @@ jobs:
         run: |
           ssh localhost "
             cd /home/ubuntu/actions-runner/_work/solicare-app-backend/solicare-app-backend &&
-            PID=\$(lsof -ti:8080 || true)
-            if [ -n \"$PID\" ]; then
-              echo 'Stopping previous application (PID: '$PID')'
-              kill $PID
-              sleep 5
-            fi
+            lsof -ti:8080 | xargs -r kill
             nohup java -jar solicare.jar > app.log 2>&1 &
+            sleep 5
           "
 
       # 8080 포트에서 정상 동작 확인
@@ -95,12 +97,12 @@ jobs:
         run: |
           for i in {1..10}; do
             if curl -sSf http://localhost:8080/actuator/health > /dev/null; then
-              echo "App is running on 8080!"
+              echo "[SUCCESS] App deployed successfully on 8080."
               exit 0
             fi
             echo "Waiting for app to be ready... ($i)"
             sleep 3
           done
-          echo "ERROR: App is not running on 8080 or /actuator/health is not available." >&2
           cat /home/ubuntu/actions-runner/_work/solicare-app-backend/solicare-app-backend/app.log || true
+          echo "ERROR: App is not running on 8080 or /actuator/health is not available." >&2
           exit 1
