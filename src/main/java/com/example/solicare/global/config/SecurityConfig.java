@@ -40,7 +40,8 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/actuator/**",
                                 "/member/join",
-                                "/member/login"
+                                "/member/login",
+                                "/api/v1/fcm/send"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
