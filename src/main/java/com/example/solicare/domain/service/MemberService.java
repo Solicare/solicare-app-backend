@@ -1,8 +1,9 @@
-package com.example.solicare.domain.member.domain;
+package com.example.solicare.domain.service;
 
-import com.example.solicare.domain.member.application.dto.MemberLoginRequestDTO;
-import com.example.solicare.domain.member.application.dto.MemberSaveRequestDTO;
-import com.example.solicare.domain.member.infrastructure.MemberRepository;
+import com.example.solicare.application.dto.member.MemberLoginRequestDTO;
+import com.example.solicare.application.dto.member.MemberSaveRequestDTO;
+import com.example.solicare.domain.entity.Member;
+import com.example.solicare.domain.repository.MemberRepository;
 import com.example.solicare.global.apiPayload.exception.custom.DuplicateMemberException;
 import com.example.solicare.global.apiPayload.exception.custom.InvalidCredentialsException;
 import com.example.solicare.global.apiPayload.exception.custom.MemberNotFoundException;

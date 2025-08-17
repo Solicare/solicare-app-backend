@@ -1,7 +1,7 @@
-package com.example.solicare.global.apiPayload.code.status;
+package com.example.solicare.global.apiPayload.response.status;
 
-import com.example.solicare.global.apiPayload.code.BaseCode;
-import com.example.solicare.global.apiPayload.code.ReasonDTO;
+import com.example.solicare.global.apiPayload.response.BaseCode;
+import com.example.solicare.global.apiPayload.response.ReasonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

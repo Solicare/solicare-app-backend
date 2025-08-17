@@ -1,11 +1,11 @@
-package com.example.solicare.domain.member.presentation;
+package com.example.solicare.application.controller;
 
-import com.example.solicare.domain.member.application.dto.MemberLoginRequestDTO;
-import com.example.solicare.domain.member.application.dto.MemberSaveRequestDTO;
-import com.example.solicare.domain.member.domain.Member;
-import com.example.solicare.domain.member.domain.MemberService;
+import com.example.solicare.application.dto.member.MemberLoginRequestDTO;
+import com.example.solicare.application.dto.member.MemberSaveRequestDTO;
+import com.example.solicare.domain.entity.Member;
+import com.example.solicare.domain.service.MemberService;
 import com.example.solicare.global.apiPayload.ApiResponse;
-import com.example.solicare.global.apiPayload.code.status.SuccessStatus;
+import com.example.solicare.global.apiPayload.response.status.SuccessStatus;
 import com.example.solicare.global.auth.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

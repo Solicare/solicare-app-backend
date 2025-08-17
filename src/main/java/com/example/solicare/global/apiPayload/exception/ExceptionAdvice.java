@@ -1,8 +1,8 @@
 package com.example.solicare.global.apiPayload.exception;
 
 import com.example.solicare.global.apiPayload.ApiResponse;
-import com.example.solicare.global.apiPayload.code.ErrorReasonDTO;
-import com.example.solicare.global.apiPayload.code.status.ErrorStatus;
+import com.example.solicare.global.apiPayload.response.ErrorReasonDTO;
+import com.example.solicare.global.apiPayload.response.status.ErrorStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;

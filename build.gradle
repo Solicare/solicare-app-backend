@@ -43,6 +43,13 @@ dependencies {
 
     // swagger (openapi 3.x)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+
+    // FCM 의존성 추가
+    implementation 'com.google.firebase:firebase-admin:9.4.1'
+
+    // jackson data bind
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
+
 }
 
 tasks.named('test') {

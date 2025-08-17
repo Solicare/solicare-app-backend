@@ -1,4 +1,4 @@
-package com.example.solicare.global.apiPayload.code;
+package com.example.solicare.global.apiPayload.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @Builder
-public class ReasonDTO {
+public class ErrorReasonDTO {
 
     private final boolean isSuccess;
     private final String code;

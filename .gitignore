@@ -39,3 +39,7 @@ out/
 .vscode/
 
 /src/main/resources/configs/**/*.properties
+
+# Firebase service account credentials
+src/main/resources/firebase/solicare-firebase-admin.json
+/src/main/resources/configs/firebase/solicare-firebase-admin.json
