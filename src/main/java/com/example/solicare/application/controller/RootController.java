@@ -1,4 +1,4 @@
-package com.example.solicare.domain.member.presentation;
+package com.example.solicare.application.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

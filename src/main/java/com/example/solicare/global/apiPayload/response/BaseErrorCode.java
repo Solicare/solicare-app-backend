@@ -1,4 +1,4 @@
-package com.example.solicare.global.apiPayload.code;
+package com.example.solicare.global.apiPayload.response;
 
 public interface BaseErrorCode {
     ErrorReasonDTO getReason();

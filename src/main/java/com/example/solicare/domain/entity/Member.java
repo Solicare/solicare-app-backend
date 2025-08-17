@@ -1,5 +1,7 @@
-package com.example.solicare.domain.member.domain;
+package com.example.solicare.domain.entity;
 
+import com.example.solicare.domain.enums.Gender;
+import com.example.solicare.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,7 +28,8 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private Gender gender = Gender.OTHER;           // ★ 추가
+    @Builder.Default
+    private Gender gender = Gender.OTHER;
 
     @Column(nullable = false, length = 255)
     private String address;          // ★ 추가
