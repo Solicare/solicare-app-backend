@@ -41,7 +41,7 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/member/join",
                                 "/member/login",
-                                "/api/v1/fcm/send"
+                                "/fcm/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
