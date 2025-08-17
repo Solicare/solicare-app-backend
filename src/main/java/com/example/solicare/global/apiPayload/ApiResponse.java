@@ -1,7 +1,7 @@
 package com.example.solicare.global.apiPayload;
 
-import com.example.solicare.global.apiPayload.code.BaseCode;
-import com.example.solicare.global.apiPayload.code.status.SuccessStatus;
+import com.example.solicare.global.apiPayload.response.BaseCode;
+import com.example.solicare.global.apiPayload.response.status.SuccessStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

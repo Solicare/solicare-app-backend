@@ -1,8 +1,8 @@
-package com.example.solicare.domain.member.application.dto;
+package com.example.solicare.application.dto.member;
 
-import com.example.solicare.domain.member.domain.Gender;
-import com.example.solicare.domain.member.domain.Member;
-import com.example.solicare.domain.member.domain.Role;
+import com.example.solicare.domain.entity.Member;
+import com.example.solicare.domain.enums.Gender;
+import com.example.solicare.domain.enums.Role;
 import lombok.Builder;
 import lombok.Getter;
 

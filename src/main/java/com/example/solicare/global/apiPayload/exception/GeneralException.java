@@ -1,7 +1,7 @@
 package com.example.solicare.global.apiPayload.exception;
 
-import com.example.solicare.global.apiPayload.code.BaseErrorCode;
-import com.example.solicare.global.apiPayload.code.ErrorReasonDTO;
+import com.example.solicare.global.apiPayload.response.BaseErrorCode;
+import com.example.solicare.global.apiPayload.response.ErrorReasonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
