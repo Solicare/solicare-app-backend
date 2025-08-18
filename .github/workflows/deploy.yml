@@ -79,11 +79,17 @@ jobs:
             exit 1
           fi
           echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
+          echo "[DEBUG] GITHUB_OUTPUT content after write:"
+          cat $GITHUB_OUTPUT
 
   deploy:
     runs-on: self-hosted
     needs: [ build ]
     steps:
+      - name: Print jar_path for debug
+        shell: bash
+        run: |
+          echo "[DEBUG] needs.build.outputs.jar_path: '${{ needs.build.outputs.jar_path }}'"
       - name: Stop previous application and Run builded runtime
         shell: bash
         run: |
