@@ -132,7 +132,6 @@ jobs:
               repo: context.repo.repo,
               deployment_id: ${{ needs.build.outputs.deployment_id }},
               state: 'success',
-              environment_url: 'https://api.solicare.kro.kr',
               log_url: 'https://github.com/Solicare/solicare-app-backend/actions/runs/${{ github.run_id }}'
             })
       - name: Deployment Status Failure
