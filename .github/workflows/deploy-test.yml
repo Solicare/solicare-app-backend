@@ -59,6 +59,10 @@ jobs:
           SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      - name: Restore firebase admin json
+        shell: bash
+        run: |
+          echo "${{ secrets.FIREBASE_ADMIN_JSON_BASE64 }}" | base64 -d > src/main/resources/configs/firebase/solicare-firebase-admin.json
       - name: Build and Test with Gradle
         shell: bash
         run: |
