@@ -1,7 +1,7 @@
-name: Deploy to AWS Lightsail Instance
+name: Test Deploy to Github Actions Runner
 
 on:
-  push:
+  pull_request:
     branches: [ master ]
 
 permissions:
@@ -11,9 +11,10 @@ permissions:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     outputs:
       deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+      jar_path: ${{ steps.jar.outputs.jar_path }}
     steps:
       - uses: actions/checkout@v4
       - name: Create GitHub Deployment
@@ -25,17 +26,13 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: context.sha,
-              environment: 'aws-lightsail-solicare-instance',
-              transient_environment: false,
+              environment: 'test-deploy-to-github-runner',
+              transient_environment: true,
+              production_environment: false,
               auto_inactive: true,
               required_contexts: []
             });
             core.setOutput('deployment_id', deployment.data.id)
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -45,6 +42,11 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
       - name: Generate properties from secrets
         shell: bash
         run: |
@@ -69,43 +71,57 @@ jobs:
           ./gradlew clean bootJar --info
       - name: Find built jar path
         id: jar
-        run: |
-          set -e
-          JAR_PATH=$(ls build/libs/*.jar 2>/dev/null | head -n 1)
-          echo "[DEBUG] Found jar path: $JAR_PATH"
-          if [ -z "$JAR_PATH" ]; then
-            echo "[ERROR] No jar file found in build/libs."
-            exit 1
-          fi
-          mv "$JAR_PATH" build/libs/built-runtime.jar
+        shell: bash
+        run: echo "jar_path=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
+      - name: Upload built jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-jar
+          path: ${{ steps.jar.outputs.jar_path }}
+          retention-days: 1
+          if-no-files-found: error
 
-  deploy:
-    runs-on: self-hosted
-    needs: [ build ]
+  test:
+    runs-on: ubuntu-latest
+    needs: build
     steps:
-      - name: Stop previous application and Run builded runtime
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Download artifact jar
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-jar
+          path: ./downloaded
+      - name: Start test app on port 8080
         shell: bash
         run: |
-          ssh localhost "
-            cd /home/ubuntu/actions-runner/_work/${{ github.event.repository.name }}/${{ github.event.repository.name }} &&
-            lsof -ti:8080 | xargs -r kill
-            nohup java -jar build/libs/built-runtime.jar > app.log 2>&1 &
-            sleep 5
-          "
-      - name: Health Check on port 8080
+          echo "[INFO] 임시 서버 실행 시작"
+          nohup java -jar -Dserver.port=8080 $(ls ./downloaded/*.jar) > test_app.log 2>&1 &
+          sleep 2
+      - name: Health check on port 8080
         shell: bash
         run: |
+          echo "[INFO] health check 시작"
           for i in {1..10}; do
             if curl -sSf http://localhost:8080/actuator/health > /dev/null; then
-              echo "[SUCCESS] App deployed successfully on 8080."
+              echo "[SUCCESS] App started successfully on 8080."
               exit 0
             fi
             echo "Waiting for actuator on 8080... ($i)"
             sleep 3
           done
-          cat /home/ubuntu/actions-runner/_work/solicare-app-backend/solicare-app-backend/app.log || true
-          echo "[ERROR] App is not running on 8080 or /actuator/health is not available." >&2
+          echo "[ERROR] App failed to start on 8080."
           exit 1
+      - name: Show and clean up test_app.log
+        if: always()
+        shell: bash
+        run: |
+          lsof -ti:8080 | xargs -r kill || true
+          cat test_app.log || true
+          rm -f test_app.log || true
       - name: Deployment Status Success
         if: success() && needs.build.result == 'success'
         uses: actions/github-script@v7
