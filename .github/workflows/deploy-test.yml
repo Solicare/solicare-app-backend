@@ -62,6 +62,7 @@ jobs:
       - name: Restore firebase admin json
         shell: bash
         run: |
+          mkdir -p src/main/resources/configs/firebase
           echo "${{ secrets.FIREBASE_ADMIN_JSON_BASE64 }}" | base64 -d > src/main/resources/configs/firebase/solicare-firebase-admin.json
       - name: Build and Test with Gradle
         shell: bash
