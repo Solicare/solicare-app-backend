@@ -1,4 +1,4 @@
-name: Deploy to AWS Lightsail
+name: Deploy to AWS Lightsail Instance
 
 on:
   push:
@@ -72,46 +72,9 @@ jobs:
         id: jar
         run: echo "jar_path=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
 
-  test:
-    runs-on: self-hosted
-    needs: build
-    steps:
-      - name: Kill process on port 8081
-        shell: bash
-        run: |
-          echo "[INFO] 8081 포트 프로세스 종료 시도"
-          lsof -ti:8081 | xargs -r kill
-      - name: Start app on port 8081
-        shell: bash
-        run: |
-          echo "[INFO] 임시 서버 실행 시작"
-          nohup java -jar -Dserver.port=8081 "${{ needs.build.outputs.jar_path }}" > test_app.log 2>&1 &
-          sleep 2
-      - name: Health check on port 8081
-        shell: bash
-        run: |
-          echo "[INFO] health check 시작"
-          for i in {1..10}; do
-            if curl -sSf http://localhost:8081/actuator/health > /dev/null; then
-              echo "[SUCCESS] App started successfully on 8081."
-              exit 0
-            fi
-            echo "Waiting for actuator on 8081... ($i)"
-            sleep 3
-          done
-          echo "[ERROR] App failed to start on 8081."
-          exit 1
-      - name: Show and clean up test_app.log
-        if: always()
-        shell: bash
-        run: |
-          lsof -ti:8081 | xargs -r kill || true
-          cat test_app.log || true
-          rm -f test_app.log || true
-
   deploy:
     runs-on: self-hosted
-    needs: [ build, test ]
+    needs: [ build ]
     steps:
       - name: Stop previous application and Run builded runtime
         shell: bash
@@ -137,7 +100,7 @@ jobs:
           echo "[ERROR] App is not running on 8080 or /actuator/health is not available." >&2
           exit 1
       - name: Deployment Status Success
-        if: success() && needs.build.result == 'success' && needs.test.result == 'success'
+        if: success() && needs.build.result == 'success'
         uses: actions/github-script@v7
         with:
           script: |
@@ -150,7 +113,7 @@ jobs:
               log_url: 'https://github.com/Solicare/solicare-app-backend/actions/runs/${{ github.run_id }}'
             })
       - name: Deployment Status Failure
-        if: failure() || needs.build.result == 'failure' || needs.test.result == 'failure'
+        if: failure() || needs.build.result == 'failure'
         uses: actions/github-script@v7
         with:
           script: |

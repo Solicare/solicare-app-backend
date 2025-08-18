@@ -81,20 +81,20 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  deploy:
+  test:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Download built jar
+      - name: Download artifact jar
         uses: actions/download-artifact@v4
         with:
           name: runtime-jar
           path: ./downloaded
-      - name: Start app on port 8080
+      - name: Start test app on port 8080
         shell: bash
         run: |
           echo "[INFO] 임시 서버 실행 시작"
-          nohup java -jar -Dserver.port=8080 ./downloaded/$(ls ./downloaded/*.jar) > test_app.log 2>&1 &
+          nohup java -jar -Dserver.port=8080 $(ls ./downloaded/*.jar) > test_app.log 2>&1 &
           sleep 2
       - name: Health check on port 8080
         shell: bash
