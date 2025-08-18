@@ -70,7 +70,7 @@ jobs:
           ./gradlew clean bootJar --info
       - name: Find built jar path
         id: jar
-        run: echo "jar_path=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
+        run: echo "jar_path=$(realpath build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: self-hosted
