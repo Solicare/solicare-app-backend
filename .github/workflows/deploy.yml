@@ -70,7 +70,15 @@ jobs:
           ./gradlew clean bootJar --info
       - name: Find built jar path
         id: jar
-        run: echo "jar_path=$(realpath build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
+        run: |
+          set -e
+          JAR_PATH=$(ls build/libs/*.jar 2>/dev/null | head -n 1)
+          echo "[DEBUG] Found jar path: $JAR_PATH"
+          if [ -z "$JAR_PATH" ]; then
+            echo "[ERROR] No jar file found in build/libs."
+            exit 1
+          fi
+          echo "jar_path=$(realpath $JAR_PATH)" >> $GITHUB_OUTPUT
 
   deploy:
     runs-on: self-hosted
