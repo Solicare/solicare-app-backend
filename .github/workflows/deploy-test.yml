@@ -90,11 +90,6 @@ jobs:
         with:
           name: runtime-jar
           path: ./downloaded
-      - name: Kill process on port 8080
-        shell: bash
-        run: |
-          echo "[INFO] 8080 포트 프로세스 종료 시도"
-          lsof -ti:8080 | xargs -r kill
       - name: Start app on port 8080
         shell: bash
         run: |
