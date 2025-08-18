@@ -14,6 +14,7 @@ jobs:
     runs-on: self-hosted
     outputs:
       deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+      jar_path: ${{ steps.jar.outputs.jar_path }}
     steps:
       - uses: actions/checkout@v4
       - name: Create GitHub Deployment
@@ -31,6 +32,11 @@ jobs:
               required_contexts: []
             });
             core.setOutput('deployment_id', deployment.data.id)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
         with:
@@ -40,11 +46,6 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'oracle'
-          java-version: '21'
       - name: Generate properties from secrets
         shell: bash
         run: |
@@ -62,72 +63,58 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew clean bootJar --info
-          JAR_PATH=$(ls build/libs/*.jar | head -n 1)
-          cp "$JAR_PATH" solicare.jar
-          echo "Packaged: $(ls -l solicare.jar)"
+      - name: Find built jar path
+        id: jar
+        run: echo "jar_path=$(ls build/libs/*.jar | head -n 1)" >> $GITHUB_OUTPUT
 
   test:
     runs-on: self-hosted
     needs: build
     steps:
-      - uses: actions/checkout@v4
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'oracle'
-          java-version: '21'
-      - name: Test run on port 8081
+      - name: Kill process on port 8081
         shell: bash
         run: |
-          set +e
           echo "[INFO] 8081 포트 프로세스 종료 시도"
           lsof -ti:8081 | xargs -r kill
+      - name: Start app on port 8081
+        shell: bash
+        run: |
           echo "[INFO] 임시 서버 실행 시작"
-          nohup java -jar -Dserver.port=8081 solicare.jar > test_app.log 2>&1 &
+          nohup java -jar -Dserver.port=8081 "${{ needs.build.outputs.jar_path }}" > test_app.log 2>&1 &
           sleep 2
+      - name: Health check on port 8081
+        shell: bash
+        run: |
           echo "[INFO] health check 시작"
           for i in {1..10}; do
             if curl -sSf http://localhost:8081/actuator/health > /dev/null; then
-              lsof -ti:8081 | xargs -r kill
-              cat test_app.log
-              rm -f test_app.log
               echo "[SUCCESS] App started successfully on 8081."
               exit 0
             fi
             echo "Waiting for actuator on 8081... ($i)"
             sleep 3
           done
-          cat test_app.log
-          rm -f test_app.log
           echo "[ERROR] App failed to start on 8081."
           exit 1
+      - name: Show and clean up test_app.log
+        if: always()
+        shell: bash
+        run: |
+          lsof -ti:8081 | xargs -r kill || true
+          cat test_app.log || true
+          rm -f test_app.log || true
 
   deploy:
     runs-on: self-hosted
     needs: [ build, test ]
     steps:
-      - uses: actions/checkout@v4
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: .
       - name: Stop previous application and Run builded runtime
         shell: bash
         run: |
           ssh localhost "
             cd /home/ubuntu/actions-runner/_work/solicare-app-backend/solicare-app-backend &&
             lsof -ti:8080 | xargs -r kill
-            nohup java -jar solicare.jar > app.log 2>&1 &
+            nohup java -jar '${{ needs.build.outputs.jar_path }}' > app.log 2>&1 &
             sleep 5
           "
       - name: Health Check on port 8080
