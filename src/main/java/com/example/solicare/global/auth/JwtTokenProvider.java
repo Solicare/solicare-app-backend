@@ -24,21 +24,35 @@ public class JwtTokenProvider {
         this.SIGNING_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
         this.expirationMinutes = expirationMinutes;
     }
+    
+    public String createToken(String email, String userUuid) {
+        Claims claims = Jwts.claims();
+        claims.setSubject(email);
+        claims.put("uuid", userUuid);
 
-    // subject에는 현재 phoneNumber를 넣어 사용
-    public String createToken(String subject, String role) {
         Date now = new Date();
         return Jwts.builder()
-                .setClaims(createClaims(subject, role))
+                .setClaims(claims) // payload
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + expirationMinutes * 60 * 1000L))
                 .signWith(SIGNING_KEY) // 키에서 알고리즘 자동 선택
                 .compact();
     }
 
-    private Claims createClaims(String subject, String role) {
-        Claims claims = Jwts.claims().setSubject(subject);
-        claims.put("role", role);
-        return claims;
+    public boolean validateToken(String token) {
+        try {
+            Claims claims = parseToken(token);
+            return !claims.getExpiration().before(new Date());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public Claims parseToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SIGNING_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

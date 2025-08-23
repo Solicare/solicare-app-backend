@@ -1,12 +1,12 @@
 package com.example.solicare.domain.service;
 
+import com.example.solicare.application.dto.member.MemberJoinRequestDTO;
 import com.example.solicare.application.dto.member.MemberLoginRequestDTO;
-import com.example.solicare.application.dto.member.MemberSaveRequestDTO;
+import com.example.solicare.application.dto.member.MemberLoginResponseDTO;
+import com.example.solicare.application.mapper.MemberMapper;
 import com.example.solicare.domain.entity.Member;
 import com.example.solicare.domain.repository.MemberRepository;
-import com.example.solicare.global.apiPayload.exception.custom.DuplicateMemberException;
-import com.example.solicare.global.apiPayload.exception.custom.InvalidCredentialsException;
-import com.example.solicare.global.apiPayload.exception.custom.MemberNotFoundException;
+import com.example.solicare.global.auth.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,37 +16,38 @@ import org.springframework.stereotype.Service;
 @Transactional
 @RequiredArgsConstructor
 public class MemberService {
+    private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
+    private final MemberMapper memberMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public Member create(MemberSaveRequestDTO memberSaveRequestDTO) {
-        if (memberRepository.findByPhoneNumber(memberSaveRequestDTO.getPhoneNumber()).isPresent()) {
-            throw new DuplicateMemberException();
+    /* ========== 가입 ========== */
+    public MemberLoginResponseDTO create(MemberJoinRequestDTO dto) {
+        if (memberRepository.existsByEmail(dto.getPhoneNumber())) {
+            // TODO: return duplicate email result
+            return null; // TODO:REMOVE: Placeholder return statement
         }
 
-        Member newMember = Member.builder()
-                .name(memberSaveRequestDTO.getName())
-                .elderlyName(memberSaveRequestDTO.getElderlyName())
-                .phoneNumber(memberSaveRequestDTO.getPhoneNumber())
-                .password(passwordEncoder.encode(memberSaveRequestDTO.getPassword())) // ★ 인코딩 추가
-                .gender(memberSaveRequestDTO.getGender()) // ★ 성별 추가
-                .address(memberSaveRequestDTO.getAddress()) // ★ 주소 추가
-                .age(memberSaveRequestDTO.getAge()) // ★ 나이 추가
-                .specialNote(memberSaveRequestDTO.getSpecialNote()) // ★ 특이사항 추가
-                .build();
+        Member newMember = memberMapper.toEntity(dto);
+        memberRepository.save(newMember);
 
-        return memberRepository.save(newMember);
+        // TODO: implement token issuance after registration
+        return null; // TODO:REMOVE: Placeholder return statement
     }
 
-    public Member login(MemberLoginRequestDTO memberLoginRequestDTO) {
-        // 회원 존재 여부 확인
-        Member member = memberRepository.findByPhoneNumber(memberLoginRequestDTO.getPhoneNumber())
-                .orElseThrow(MemberNotFoundException::new);
-
-        if (!passwordEncoder.matches(memberLoginRequestDTO.getPassword(), member.getPassword())) {
-            throw new InvalidCredentialsException();
+    /* ========== 로그인 (토큰 발급) ========== */
+    public MemberLoginResponseDTO loginAndIssueToken(MemberLoginRequestDTO dto) {
+        Member member = memberRepository.findMemberByEmail(dto.getEmail()).orElse(null);
+        if (member == null) {
+            // TODO: return member not found result
+            return null; // TODO:REMOVE: Placeholder return statement
         }
-        return member;
-    }
 
+        if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
+            // TODO: return password mismatch result
+            return null; // TODO:REMOVE: Placeholder return statement
+        }
+        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getUuid());
+        return new MemberLoginResponseDTO(member.getName(), jwtToken);
+    }
 }

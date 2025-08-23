@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
-    Optional<Member> findByPhoneNumber(String phoneNumber);
+public interface MemberRepository extends JpaRepository<Member, String> {
+    Optional<Member> findMemberByUuid(String uuid);
 
-    Optional<Member> findMemberIdByPhoneNumber(String phoneNumber);
+    Optional<Member> findMemberByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

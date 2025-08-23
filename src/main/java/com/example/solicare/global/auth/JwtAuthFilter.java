@@ -21,6 +21,7 @@ import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.List;
 
+// TODO: refactor doFilterInternal() - extract methods, separate steps
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -60,6 +61,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             String role = String.valueOf(claims.get("role"));
 
+            // TODO: use JwtAuthenticationToken instead of UsernamePasswordAuthenticationToken
+            // 4) 인증 객체 생성 및 SecurityContext에 저장
             var authentication = new UsernamePasswordAuthenticationToken(
                     claims.getSubject(), // subject = phoneNumber
                     null,
