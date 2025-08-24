@@ -3,7 +3,7 @@ package com.solicare.app.backend.domain.service;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import com.solicare.app.backend.domain.dto.FcmSendResult;
+import com.solicare.app.backend.domain.dto.output.push.FcmSendOutputDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class FcmService {
   private final FirebaseMessaging firebaseMessaging;
 
-  public FcmSendResult sendMessageTo(String fcmToken, String title, String body) {
+  public FcmSendOutputDetail sendMessageTo(String fcmToken, String title, String body) {
     Message message =
         Message.builder()
             .setToken(fcmToken)
@@ -21,9 +21,9 @@ public class FcmService {
 
     try {
       firebaseMessaging.send(message);
-      return FcmSendResult.of(FcmSendResult.Status.SENT, null);
+      return FcmSendOutputDetail.of(FcmSendOutputDetail.Status.SENT, null);
     } catch (Exception e) {
-      return FcmSendResult.of(FcmSendResult.Status.ERROR, e);
+      return FcmSendOutputDetail.of(FcmSendOutputDetail.Status.ERROR, e);
     }
   }
 }
