@@ -7,36 +7,33 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@RequiredArgsConstructor(staticName = "of")
-@Table(name = "senior")
+@AllArgsConstructor
+@Builder
 @ToString(exclude = "password")
 public class Senior {
-    @Id
-    @Column(nullable = false, length = 20, unique = true)
-    @NonNull
-    private String userId;
-    @Column(nullable = false, length = 4)
-    @NonNull
-    private String password;
+  @Id
+  @Column(nullable = false, length = 20, unique = true)
+  private String userId;
 
-    @Column(nullable = false)
-    @NonNull
-    private String name;
+  @Column(nullable = false, length = 4)
+  private String password;
 
-    @Column(nullable = false)
-    @NonNull
-    private Integer age;
+  @Column(nullable = false)
+  private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @NonNull
-    private Gender gender;
+  @Column(nullable = false)
+  private Integer age;
 
-    @Column(nullable = false)
-    private String phoneNumber;
-    @NonNull
-    @Column(nullable = false)
-    private String address;
-    @Column(nullable = false)
-    private String note;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Gender gender;
+
+  @Column(nullable = false)
+  private String phoneNumber;
+
+  @Column(nullable = false)
+  private String address;
+
+  @Column(nullable = false)
+  private String note;
 }

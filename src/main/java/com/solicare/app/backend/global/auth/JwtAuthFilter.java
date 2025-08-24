@@ -24,7 +24,7 @@ import java.util.List;
 // TODO: refactor doFilterInternal() - extract methods, separate steps
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-
+    
     private final SecretKey SIGNING_KEY;
 
     public JwtAuthFilter(@Value("${jwt.secretKey}") String secretKey) {
