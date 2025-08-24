@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SeniorRequestDTO {
-  @Schema(description = "모니터링 대상 연결 요청 DTO")
+  @Schema(name = "SeniorRequestCreate", description = "모니터링 대상 연결 요청 DTO")
   public record Create(
       @Schema(
               description = "연결 대상의 회원 UUID",
@@ -61,7 +61,7 @@ public final class SeniorRequestDTO {
           String address,
       @Schema(description = "특이사항", example = "고혈압 주의") String note) {}
 
-  @Schema(description = "모니터링 대상 연결 요청 DTO")
+  @Schema(name = "SeniorRequestLink", description = "모니터링 대상 연결 요청 DTO")
   public record Link(
       @Schema(
               description = "연결 대상의 회원 UUID",

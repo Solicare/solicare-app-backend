@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class FcmRequestDTO {
-  @Schema(description = "FCM 푸시 알림 요청 DTO")
   public record Send(
       @Schema(
               description = "디바이스 토큰",
@@ -24,7 +23,6 @@ public final class FcmRequestDTO {
           @NotBlank(message = "내용은 필수입니다.")
           String body) {}
 
-  @Schema(description = "FCM 디바이스 등록 요청 DTO")
   public record Register(
       @Schema(
               description = "디바이스 토큰",
@@ -33,13 +31,12 @@ public final class FcmRequestDTO {
           @NotBlank(message = "토큰은 필수입니다.")
           String token,
       @Schema(
-              description = "",
+              description = "로컬 디바이스 번호",
               example = "010-1234-5678",
               requiredMode = Schema.RequiredMode.REQUIRED)
           @NotBlank(message = "")
           String localDeviceNumber) {}
 
-  @Schema(description = "FCM 디바이스 삭제 요청 DTO")
   public record Delete(
       @Schema(
               description = "디바이스 토큰",
