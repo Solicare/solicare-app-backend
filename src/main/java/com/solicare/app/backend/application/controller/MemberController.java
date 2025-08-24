@@ -2,6 +2,8 @@ package com.solicare.app.backend.application.controller;
 
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
+import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
+import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
 import com.solicare.app.backend.domain.service.MemberService;
 import com.solicare.app.backend.global.apiPayload.ApiResponse;
 import com.solicare.app.backend.global.apiPayload.response.status.SuccessStatus;
@@ -34,12 +36,11 @@ public class MemberController {
         description = "중복 회원")
   })
   @PostMapping("/join")
-  public ResponseEntity<ApiResponse<MemberResponseDTO.Join>> memberCreate(
+  public ResponseEntity<ApiResponse<MemberResponseDTO.Join>> join(
       @RequestBody @Valid MemberRequestDTO.Join memberJoinRequestDTO) {
-    MemberResponseDTO.Login resp = memberService.create(memberJoinRequestDTO);
+    MemberJoinOutput result = memberService.createAndIssueToken(memberJoinRequestDTO);
     // TODO: check result of creation and respond accordingly
-    return ResponseEntity.ok(
-        ApiResponse.onSuccess(SuccessStatus._OK, new MemberResponseDTO.Join(resp.token())));
+    return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
   }
 
   @Operation(summary = "로그인", description = "전화번호와 비밀번호로 로그인합니다.")
@@ -54,9 +55,9 @@ public class MemberController {
   @PostMapping("/login")
   public ResponseEntity<ApiResponse<MemberResponseDTO.Login>> login(
       @RequestBody @Valid MemberRequestDTO.Login memberLoginRequestDTO) {
-    MemberResponseDTO.Login resp = memberService.loginAndIssueToken(memberLoginRequestDTO);
+    MemberLoginOutput resp = memberService.loginAndIssueToken(memberLoginRequestDTO);
     // TODO: check result of creation and respond accordingly
-    return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, resp));
+    return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
   }
 
   @GetMapping("profile?uuid={uuid}")
