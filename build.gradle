@@ -48,9 +48,6 @@ dependencies {
     // FCM 의존성 추가
     implementation 'com.google.firebase:firebase-admin:9.4.1'
 
-    // jackson data bind
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
-
 }
 
 tasks.named('test') {
@@ -60,7 +57,7 @@ tasks.named('test') {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'com.solicare.app.backend.SolicareApplication'
+                'Main-Class': 'com.solicare.app.backend.SolicareBackendApplication'
         )
     }
 }
