@@ -1,6 +1,8 @@
 package com.solicare.app.backend.domain.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 
 @Entity
@@ -26,9 +28,8 @@ public class Member {
   @Column(nullable = false, unique = true)
   private String phoneNumber;
 
-  @OneToOne(fetch = FetchType.LAZY) // getFcmDevice() 시에만 조회
-  @JoinColumn(referencedColumnName = "uuid", unique = true)
-  private PushDevice pushDevice;
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = false)
+  private List<PushDevice> pushDevices = new ArrayList<>();
 
   // TODO: add column 'seniors' (List of UUIDs) for seniors under care
 }

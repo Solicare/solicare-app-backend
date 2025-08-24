@@ -1,9 +1,7 @@
 package com.solicare.app.backend.application.controller;
 
 import com.solicare.app.backend.application.dto.request.FcmRequestDTO;
-import com.solicare.app.backend.domain.dto.FcmSendResult;
-import com.solicare.app.backend.domain.service.FcmService;
-import com.solicare.app.backend.domain.service.PushDeviceService;
+import com.solicare.app.backend.domain.service.PushService;
 import com.solicare.app.backend.global.apiPayload.ApiResponse;
 import com.solicare.app.backend.global.apiPayload.response.status.ErrorStatus;
 import com.solicare.app.backend.global.apiPayload.response.status.SuccessStatus;
@@ -18,26 +16,25 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/fcm")
+@RequestMapping("/push/fcm")
 @RequiredArgsConstructor
-public class FcmController {
-  private final FcmService fcmService;
-  private final PushDeviceService pushDeviceService;
+public class PushFcmController {
+  private final PushService pushService;
 
   @PostMapping("/push")
-  public ResponseEntity<ApiResponse<FcmSendResult>> pushMessage(
+  public ResponseEntity<ApiResponse<Void>> pushMessage(
       @NonNull Authentication authentication,
       @RequestBody @Valid FcmRequestDTO.Send fcmSendRequestDTO) {
     Jwt jwt = (Jwt) authentication.getPrincipal();
-    FcmSendResult result =
-        fcmService.sendMessageToMember(
-            jwt.getClaimAsString("uuid"), fcmSendRequestDTO.title(), fcmSendRequestDTO.body());
-    if (result.getStatus() == FcmSendResult.Status.SENT) {
-      return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
-    }
+    //    FcmSendOutputDetail result =
+    //        pushService.sendFcmMessageToMemberByUuid(
+    //            jwt.getClaimAsString("uuid"), fcmSendRequestDTO.title(),
+    // fcmSendRequestDTO.body());
+    //    if (result.getStatus() == FcmSendOutputDetail.Status.SENT) {
+    //      return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
     return ResponseEntity.ok(
         ApiResponse.onFailure(
-            ErrorStatus._INTERNAL_SERVER_ERROR.getCode(), "FCM발송중 오류가 발생했습니다", result));
+            ErrorStatus._INTERNAL_SERVER_ERROR.getCode(), "FCM발송중 오류가 발생했습니다", null));
   }
 
   @PutMapping("/register/{token}") // 등록
@@ -55,4 +52,6 @@ public class FcmController {
       @RequestBody @Valid FcmRequestDTO.Delete req) {
     return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
   }
+
+  // TODO: implement different status handling after refactoring PushService
 }

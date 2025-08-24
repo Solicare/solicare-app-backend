@@ -1,13 +1,17 @@
 package com.solicare.app.backend.domain.repository;
 
+import com.solicare.app.backend.domain.entity.Member;
 import com.solicare.app.backend.domain.entity.PushDevice;
-import java.util.Optional;
+import com.solicare.app.backend.domain.enums.PushDeviceType;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PushDeviceRepository extends JpaRepository<PushDevice, String> {
-  Optional<PushDevice> findByUuid(String uuid);
+  List<PushDevice> findByMember(Member member);
 
-  Optional<PushDevice> findByToken(String token);
+  List<PushDevice> findByMember_Uuid(String memberUuid);
 
-  void deleteByToken(String token);
+  void deleteByTypeAndToken(PushDeviceType type, String token);
+
+  boolean existsByTypeAndToken(PushDeviceType type, String token);
 }

@@ -1,6 +1,6 @@
 package com.solicare.app.backend.domain.entity;
 
-import com.solicare.app.backend.domain.enums.DeviceType;
+import com.solicare.app.backend.domain.enums.PushDeviceType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -19,7 +19,7 @@ public class PushDevice {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private DeviceType type;
+  private PushDeviceType type;
 
   @Column(nullable = false, length = 2048)
   private String token;
@@ -41,8 +41,25 @@ public class PushDevice {
   //  @Column(length = 20)
   //  private String osVersion; // OS 버전
 
-  @OneToOne(mappedBy = "pushDevice")
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_uuid")
   private Member member;
+
+  public PushDevice link(Member member) {
+    this.member = member;
+    this.touch();
+    return this;
+  }
+
+  private void touch() {
+    this.lastSeenAt = LocalDateTime.now();
+  }
+
+  public PushDevice unlink() {
+    this.member = null;
+    this.touch();
+    return this;
+  }
 
   public PushDevice setEnabled(boolean enabled) {
     this.enabled = enabled;
@@ -53,9 +70,5 @@ public class PushDevice {
     this.token = token;
     this.touch();
     return this;
-  }
-
-  private void touch() {
-    this.lastSeenAt = LocalDateTime.now();
   }
 }
