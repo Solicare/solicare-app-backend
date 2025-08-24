@@ -4,6 +4,7 @@ import com.example.solicare.global.auth.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,7 +42,8 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/member/join",
                                 "/member/login",
-                                "/fcm/**"
+                                "/fcm/**",
+                                "/assistant/chat/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -56,7 +58,6 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost",
                 "http://localhost:*",
-                "http://*.solicare.kro.kr",
                 "https://*.solicare.kro.kr"
         )); // localhost와 *.solicare.kro.kr 허용
         configuration.setAllowedMethods(Collections.singletonList("*"));        // 모든 HTTP 메서드 허용
