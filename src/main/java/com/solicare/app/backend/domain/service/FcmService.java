@@ -4,26 +4,29 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.solicare.app.backend.domain.dto.output.push.FcmSendOutputDetail;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class FcmService {
-  private final FirebaseMessaging firebaseMessaging;
+    private final FirebaseMessaging firebaseMessaging;
 
-  public FcmSendOutputDetail sendMessageTo(String fcmToken, String title, String body) {
-    Message message =
-        Message.builder()
-            .setToken(fcmToken)
-            .setNotification(Notification.builder().setTitle(title).setBody(body).build())
-            .build();
+    public FcmSendOutputDetail sendMessageTo(String fcmToken, String title, String body) {
+        Message message =
+                Message.builder()
+                        .setToken(fcmToken)
+                        .setNotification(
+                                Notification.builder().setTitle(title).setBody(body).build())
+                        .build();
 
-    try {
-      firebaseMessaging.send(message);
-      return FcmSendOutputDetail.of(FcmSendOutputDetail.Status.SENT, null);
-    } catch (Exception e) {
-      return FcmSendOutputDetail.of(FcmSendOutputDetail.Status.ERROR, e);
+        try {
+            firebaseMessaging.send(message);
+            return FcmSendOutputDetail.of(FcmSendOutputDetail.Status.SENT, null);
+        } catch (Exception e) {
+            return FcmSendOutputDetail.of(FcmSendOutputDetail.Status.ERROR, e);
+        }
     }
-  }
 }

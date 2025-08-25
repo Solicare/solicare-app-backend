@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class RootController {
-  @GetMapping("/")
-  public String root() {
-    return "Welcome! This is the default API page of Solicare.";
-  }
+    @GetMapping("/")
+    public String root() {
+        return "Welcome! This is the default API page of Solicare.";
+    }
 }

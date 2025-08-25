@@ -1,6 +1,7 @@
 package com.solicare.app.backend.global.config;
 
 import com.solicare.app.backend.global.auth.JwtAuthFilter;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,25 +29,25 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain myFilter(HttpSecurity http) throws Exception {
-        return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/actuator/**",
-                                "/member/join",
-                                "/member/login",
-                                "/fcm/register/{token}",
-                                "/fcm/unregister/{token}"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(
+                                                "/",
+                                                "/swagger-ui/**",
+                                                "/v3/api-docs/**",
+                                                "/swagger-resources/**",
+                                                "/webjars/**",
+                                                "/actuator/**",
+                                                "/member/join",
+                                                "/member/login",
+                                                "/fcm/register/{token}",
+                                                "/fcm/unregister/{token}")
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -55,14 +56,14 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost",
-                "http://localhost:*",
-                "https://*.solicare.kro.kr"
-        )); // localhost와 *.solicare.kro.kr 허용
-        configuration.setAllowedMethods(Collections.singletonList("*"));        // 모든 HTTP 메서드 허용
-        configuration.setAllowedHeaders(Collections.singletonList("*"));        // 모든 Header 허용
-        configuration.setAllowCredentials(true);                                // 인증 정보 포함 허용
+        configuration.setAllowedOriginPatterns(
+                Arrays.asList(
+                        "http://localhost",
+                        "http://localhost:*",
+                        "https://*.solicare.kro.kr")); // localhost와 *.solicare.kro.kr 허용
+        configuration.setAllowedMethods(Collections.singletonList("*")); // 모든 HTTP 메서드 허용
+        configuration.setAllowedHeaders(Collections.singletonList("*")); // 모든 Header 허용
+        configuration.setAllowCredentials(true); // 인증 정보 포함 허용
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
