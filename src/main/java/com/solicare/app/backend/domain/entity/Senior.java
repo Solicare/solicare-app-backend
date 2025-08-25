@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
@@ -38,4 +41,8 @@ public class Senior {
 
     @Column(nullable = false)
     private String note;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "senior", cascade = CascadeType.ALL)
+    private List<CareRelation> careRelations = new ArrayList<>();
 }

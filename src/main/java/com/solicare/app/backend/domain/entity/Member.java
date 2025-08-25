@@ -34,5 +34,7 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<PushDevice> pushDevices = new ArrayList<>();
 
-    // TODO: add column 'seniors' (List of UUIDs) for seniors under care
+    @Builder.Default
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<CareRelation> careRelations = new ArrayList<>();
 }
