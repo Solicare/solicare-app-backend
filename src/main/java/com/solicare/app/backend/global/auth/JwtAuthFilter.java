@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +28,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.*;
 
+@Slf4j
 @Component
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -42,15 +44,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String header = request.getHeader("Authorization");
 
-        // 1) No Authorization header or not Bearer
+        log.info(
+                "🔍 JWT Filter - Request URI: {}, Authorization Header: {}",
+                request.getRequestURI(),
+                header != null
+                        ? "Present (" + header.substring(0, Math.min(20, header.length())) + "...)"
+                        : "null");
+
+        // 1) No Authorization header
         // -> Filter pass(401 is handled by ExceptionTranslationFilter)
         if (header == null) {
+            log.info("❌ No Authorization header, passing to next filter");
             chain.doFilter(request, response);
             return;
         }
 
         // 2) Not Bearer
         if (!header.startsWith("Bearer ")) {
+            log.info("❌ Authorization header does not start with Bearer: {}", header);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
 
@@ -64,14 +75,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // 3) Extract JWT token
         // Empty -> Filter pass(401 is handled by ExceptionTranslationFilter)
         String token = header.substring(7).trim();
+        log.info("🔑 Extracted token length: {}", token.length());
+
         if (token.isEmpty()) {
+            log.info("❌ Token is empty, passing to next filter");
             chain.doFilter(request, response);
             return;
         }
 
         // 4) Validate JWT token
         JwtValidateOutput output = jwtTokenProvider.validateToken(token);
+        log.info("✅ Token validation status: {}", output.getStatus());
+
         if (output.getStatus() != JwtValidateOutput.Status.VALID) {
+            log.info("❌ Token validation failed: {}", output.getStatus());
             sendJwtValidateErrorResponse(response, output);
             return;
         }
@@ -79,6 +96,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // 5) Extract roles from claims
         Jws<Claims> jwsClaims = output.getJwsClaims();
         Claims claims = jwsClaims.getBody();
+        String subject = claims.getSubject();
+        log.info("👤 Subject: {}", subject);
         List<String> roles =
                 Optional.ofNullable(claims.get("role"))
                         .filter(List.class::isInstance)
@@ -87,7 +106,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         .map(list -> list.stream().map(Object::toString).toList())
                         .orElseGet(List::of);
 
+        log.info("🔑 Roles from token: {}", roles);
+
         if (roles.isEmpty()) {
+            log.info("❌ Role claim is missing in token");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
 
@@ -102,9 +124,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // 6) Create Authentication and set in SecurityContext (no password needed for JWT)
         List<GrantedAuthority> authorities = buildAuthoritiesFromRoles(claims.getSubject(), roles);
+        log.info(
+                "🛡️ Built authorities: {}",
+                authorities.stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(java.util.stream.Collectors.toList()));
+
+        if (authorities.isEmpty()) {
+            log.info("❌ No valid authorities found for user");
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json");
+            response.getWriter()
+                    .write(
+                            "{\"message\":\"Authentication Failed.\", \"reason\":\"No valid authorities found for user.\"}");
+            return;
+        }
+
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(claims.getSubject(), null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.info(
+                "✅ Authentication successful: {} with authorities: {}",
+                authentication.getPrincipal(),
+                authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(java.util.stream.Collectors.toList()));
         chain.doFilter(request, response);
     }
 
