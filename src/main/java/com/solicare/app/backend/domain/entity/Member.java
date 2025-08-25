@@ -1,9 +1,11 @@
 package com.solicare.app.backend.domain.entity;
 
 import jakarta.persistence.*;
+
+import lombok.*;
+
 import java.util.ArrayList;
 import java.util.List;
-import lombok.*;
 
 @Entity
 @Getter
@@ -31,5 +33,6 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<PushDevice> pushDevices = new ArrayList<>();
 
-    // TODO: add column 'seniors' (List of UUIDs) for seniors under care
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<CareRelation> careRelations = new ArrayList<>();
 }
