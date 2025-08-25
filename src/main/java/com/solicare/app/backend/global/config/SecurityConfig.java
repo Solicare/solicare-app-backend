@@ -4,6 +4,7 @@ import com.solicare.app.backend.global.auth.JwtAuthFilter;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,13 +24,13 @@ import java.util.Collections;
 
 @Configuration
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Slf4j
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
@@ -56,6 +57,11 @@ public class SecurityConfig {
                         eh ->
                                 eh.authenticationEntryPoint(
                                                 (request, response, authException) -> {
+                                                    logSecurityException(
+                                                            "🚨 AuthenticationEntryPoint",
+                                                            request,
+                                                            authException);
+
                                                     response.setStatus(401);
                                                     response.setContentType("application/json");
 
@@ -66,6 +72,11 @@ public class SecurityConfig {
                                                 })
                                         .accessDeniedHandler(
                                                 (request, response, accessDeniedException) -> {
+                                                    logSecurityException(
+                                                            "🔒 AccessDeniedHandler",
+                                                            request,
+                                                            accessDeniedException);
+
                                                     response.setStatus(403);
                                                     response.setContentType("application/json");
 
@@ -77,6 +88,19 @@ public class SecurityConfig {
                 // Use JwtAuthFilter instead of UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    private void logSecurityException(
+            String handlerName,
+            jakarta.servlet.http.HttpServletRequest request,
+            Exception exception) {
+        log.error("{} triggered!", handlerName);
+        log.error("Request URI: {}", request.getRequestURI());
+        log.error("Request Method: {}", request.getMethod());
+        log.error("Authorization Header: {}", request.getHeader("Authorization"));
+        log.error("Exception: {}", exception.getClass().getSimpleName());
+        log.error("Exception Message: {}", exception.getMessage());
+        log.error("Exception Stack Trace: ", exception);
     }
 
     @Bean
