@@ -36,15 +36,16 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers(
                                                 "/",
-                                                "/swagger-ui/**",
-                                                "/v3/api-docs/**",
-                                                "/swagger-resources/**",
+                                                "/docs",
                                                 "/webjars/**",
                                                 "/actuator/**",
-                                                "/member/join",
-                                                "/member/login",
-                                                "/fcm/register/{token}",
-                                                "/fcm/unregister/{token}")
+                                                "/v3/api-docs/**",
+                                                "/swagger-ui/**",
+                                                "/swagger-resources/**",
+                                                "/api/member/join",
+                                                "/api/member/login",
+                                                "/api/fcm/register/{token}",
+                                                "/api/fcm/unregister/{token}")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())

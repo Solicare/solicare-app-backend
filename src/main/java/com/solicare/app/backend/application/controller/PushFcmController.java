@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Push-FCM", description = "FCM푸시 관련 API")
 @RestController
-@RequestMapping("/push/fcm")
+@RequestMapping("/api/push/fcm")
 @RequiredArgsConstructor
 public class PushFcmController {
     private final PushService pushService;
