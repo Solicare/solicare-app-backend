@@ -4,7 +4,9 @@ import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.domain.dto.output.OperationOutput;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor(staticName = "of")
 public class MemberJoinOutput implements OperationOutput {
     private Status status;

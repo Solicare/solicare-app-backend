@@ -34,7 +34,7 @@ public class MemberService {
      * @return 가입 결과 및 토큰 정보
      */
     public MemberJoinOutput createAndIssueToken(MemberRequestDTO.Join dto) {
-        if (memberRepository.existsByEmail(dto.phoneNumber())) {
+        if (memberRepository.existsByEmail(dto.email())) {
             return MemberJoinOutput.of(MemberJoinOutput.Status.USER_ALREADY_EXISTS, null, null);
         }
         Member newMember = memberMapper.toEntity(dto);
