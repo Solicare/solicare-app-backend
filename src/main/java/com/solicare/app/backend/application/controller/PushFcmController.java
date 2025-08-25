@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Push-FCM", description = "FCM푸시 관련 API")
@@ -31,7 +30,6 @@ public class PushFcmController {
             @NonNull Authentication authentication,
             @Schema(name = "FcmSendRequest", description = "FCM 푸시 알림 요청 DTO") @RequestBody @Valid
                     FcmRequestDTO.Send fcmSendRequestDTO) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
         //    FcmSendOutputDetail result =
         //        pushService.sendFcmMessageToMemberByUuid(
         //            jwt.getClaimAsString("uuid"), fcmSendRequestDTO.title(),

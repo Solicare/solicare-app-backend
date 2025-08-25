@@ -2,6 +2,9 @@ package com.solicare.app.backend.global.config;
 
 import com.solicare.app.backend.global.auth.JwtAuthFilter;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,23 +22,23 @@ import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class SecurityConfig {
-
     private final JwtAuthFilter jwtAuthFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
-        this.jwtAuthFilter = jwtAuthFilter;
-    }
-
     @Bean
-    public SecurityFilterChain myFilter(HttpSecurity http) throws Exception {
+    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         auth ->
                                 auth.requestMatchers(
                                                 "/",
+                                                "/favicon.ico",
+                                                "/robots.txt",
+                                                "/error",
                                                 "/docs",
                                                 "/webjars/**",
                                                 "/actuator/**",
@@ -49,7 +52,29 @@ public class SecurityConfig {
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(
+                        eh ->
+                                eh.authenticationEntryPoint(
+                                                (request, response, authException) -> {
+                                                    response.setStatus(401);
+                                                    response.setContentType("application/json");
+
+                                                    // TODO: modify to respond via ApiResponse<T>
+                                                    response.getWriter()
+                                                            .write(
+                                                                    "{\"message\":\"Authentification needed.\", \"reason\":\"Authorization Header is required\"}");
+                                                })
+                                        .accessDeniedHandler(
+                                                (request, response, accessDeniedException) -> {
+                                                    response.setStatus(403);
+                                                    response.setContentType("application/json");
+
+                                                    // TODO: modify to respond via ApiResponse<T>
+                                                    response.getWriter()
+                                                            .write(
+                                                                    "{\"message\":\"Access denied.\", \"reason\":\"You do not have permission to access this resource.\"}");
+                                                }))
+                // Use JwtAuthFilter instead of UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

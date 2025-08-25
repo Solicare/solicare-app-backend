@@ -1,8 +1,10 @@
 package com.solicare.app.backend.global.auth;
 
 import com.solicare.app.backend.domain.dto.output.auth.JwtValidateOutput;
+import com.solicare.app.backend.domain.enums.Role;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 
@@ -28,10 +31,10 @@ public class JwtTokenProvider {
         this.expirationMinutes = expirationMinutes;
     }
 
-    public String createToken(String email, String userUuid) {
+    public String createToken(List<Role> roles, String uuid) {
         Claims claims = Jwts.claims();
-        claims.setSubject(email);
-        claims.put("uuid", userUuid);
+        claims.setSubject(uuid);
+        claims.put("role", roles.stream().map(Role::name).toList());
 
         Date now = new Date();
         return Jwts.builder()
@@ -44,21 +47,17 @@ public class JwtTokenProvider {
 
     public JwtValidateOutput validateToken(String token) {
         try {
-            Claims claims = parseToken(token);
+            Jws<Claims> jwsClaims = parseToken(token);
 
-            if (claims.getExpiration().before(new Date()))
+            if (jwsClaims.getBody().getExpiration().before(new Date()))
                 return JwtValidateOutput.of(JwtValidateOutput.Status.EXPIRED, null, null);
-            return JwtValidateOutput.of(JwtValidateOutput.Status.VALID, claims, null);
+            return JwtValidateOutput.of(JwtValidateOutput.Status.VALID, jwsClaims, null);
         } catch (Exception e) {
             return JwtValidateOutput.of(JwtValidateOutput.Status.INVALID, null, e);
         }
     }
 
-    public Claims parseToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SIGNING_KEY)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public Jws<Claims> parseToken(String token) {
+        return Jwts.parserBuilder().setSigningKey(SIGNING_KEY).build().parseClaimsJws(token);
     }
 }

@@ -1,82 +1,155 @@
 package com.solicare.app.backend.global.auth;
 
+import com.solicare.app.backend.domain.dto.output.auth.JwtValidateOutput;
+import com.solicare.app.backend.domain.enums.Role;
+import com.solicare.app.backend.domain.repository.MemberRepository;
+import com.solicare.app.backend.domain.repository.SeniorRepository;
+
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.Jws;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
-// TODO: refactor doFilterInternal() - extract methods, separate steps
 @Component
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class JwtAuthFilter extends OncePerRequestFilter {
-    
-    private final SecretKey SIGNING_KEY;
-
-    public JwtAuthFilter(@Value("${jwt.secretKey}") String secretKey) {
-        // Base64 디코딩 후 HMAC 키 생성 (TokenProvider와 동일 방식)
-        this.SIGNING_KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
-    }
+    private final JwtTokenProvider jwtTokenProvider;
+    private final MemberRepository memberRepository;
+    private final SeniorRepository seniorRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain chain)
             throws ServletException, IOException {
-
         String header = request.getHeader("Authorization");
 
-        // 1) Authorization 헤더 없거나 "Bearer " 아님 → 통과
-        if (header == null || !header.startsWith("Bearer ")) {
+        // 1) No Authorization header or not Bearer
+        // -> Filter pass(401 is handled by ExceptionTranslationFilter)
+        if (header == null) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 2) 토큰 추출
-        String token = header.substring(7).trim();
-        if (token.isEmpty()) { // "Bearer "만 온 경우
-            chain.doFilter(request, response);
-            return;
-        }
-
-        try {
-            // 3) 토큰 파싱
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(SIGNING_KEY)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
-            String role = String.valueOf(claims.get("role"));
-
-            // TODO: use JwtAuthenticationToken instead of UsernamePasswordAuthenticationToken
-            // 4) 인증 객체 생성 및 SecurityContext에 저장
-            var authentication = new UsernamePasswordAuthenticationToken(
-                    claims.getSubject(), // subject = phoneNumber
-                    null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            chain.doFilter(request, response);
-        } catch (JwtException e) {
-            // 서명/만료/형식 오류 등 JWT 예외
-            SecurityContextHolder.clearContext();
+        // 2) Not Bearer
+        if (!header.startsWith("Bearer ")) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
-            response.getWriter().write("{\"message\":\"invalid token\"}");
+
+            // TODO: modify to respond via ApiResponse<T>
+            response.getWriter()
+                    .write(
+                            "{\"message\":\"Authentication Failed.\", \"reason\":\"Authorization Header is not Bearer format\"}");
+            return;
         }
+
+        // 3) Extract JWT token
+        // Empty -> Filter pass(401 is handled by ExceptionTranslationFilter)
+        String token = header.substring(7).trim();
+        if (token.isEmpty()) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // 4) Validate JWT token
+        JwtValidateOutput output = jwtTokenProvider.validateToken(token);
+        if (output.getStatus() != JwtValidateOutput.Status.VALID) {
+            sendJwtValidateErrorResponse(response, output);
+            return;
+        }
+
+        // 5) Extract roles from claims
+        Jws<Claims> jwsClaims = output.getJwsClaims();
+        Claims claims = jwsClaims.getBody();
+        List<String> roles =
+                Optional.ofNullable(claims.get("role"))
+                        .filter(List.class::isInstance)
+                        .map(List.class::cast)
+                        .map(list -> (List<?>) list)
+                        .map(list -> list.stream().map(Object::toString).toList())
+                        .orElseGet(List::of);
+
+        if (roles.isEmpty()) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType("application/json");
+
+            // TODO: modify to respond via ApiResponse<T>
+            response.getWriter()
+                    .write(
+                            "{\"message\":\"Authentication Failed.\", \"reason\":\"Role claim is missing in token.\"}");
+            return;
+        }
+
+        // 5) Validate roles with DB and create Authority list
+
+        // 6) Create Authentication and set in SecurityContext (no password needed for JWT)
+        List<GrantedAuthority> authorities = buildAuthoritiesFromRoles(claims.getSubject(), roles);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(claims.getSubject(), null, authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        chain.doFilter(request, response);
+    }
+
+    @NonNull
+    private List<GrantedAuthority> buildAuthoritiesFromRoles(
+            String subject, List<String> roleNames) {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (String role : roleNames) {
+            if (validateRoleWithSubject(Role.valueOf(role), subject)) {
+                authorities.add(() -> "ROLE_" + role);
+            }
+        }
+        return authorities;
+    }
+
+    private boolean validateRoleWithSubject(Role role, String subject) {
+        switch (role) {
+            case MEMBER -> {
+                return memberRepository.existsByUuid(subject);
+            }
+            case SENIOR -> {
+                return seniorRepository.existsByUserId(subject);
+            }
+        }
+        return false;
+    }
+
+    // TODO: modify to respond via ApiResponse<T>
+    private void sendJwtValidateErrorResponse(
+            HttpServletResponse response, JwtValidateOutput output) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType("application/json");
+        String reason;
+        switch (output.getStatus()) {
+            case JwtValidateOutput.Status.INVALID -> {
+                reason = "invalid token";
+                Exception e = output.getException();
+                if (e != null) {
+                    reason += ": " + e.getMessage();
+                }
+            }
+            case JwtValidateOutput.Status.EXPIRED -> reason = "expired token";
+            default -> throw new RuntimeException("not catched status: " + output.getStatus());
+        }
+        response.getWriter()
+                .write("{\"message\":\"Authentication Failed.\", \"reason\":\"" + reason + "\"}");
     }
 }

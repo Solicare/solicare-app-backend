@@ -25,7 +25,7 @@ public class SwaggerConfig {
                         .description("Solicare 서버의 API 명세서입니다.")
                         .version("1.0.0");
 
-        String jwtSchemeName = "JWT TOKEN";
+        String jwtSchemeName = "BearerAuth";
 
         SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
 
@@ -34,10 +34,13 @@ public class SwaggerConfig {
                         .addSecuritySchemes(
                                 jwtSchemeName,
                                 new SecurityScheme()
-                                        .name(jwtSchemeName)
+                                        .name("Authorization")
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
-                                        .bearerFormat("JWT"));
+                                        .bearerFormat("JWT")
+                                        .in(SecurityScheme.In.HEADER)
+                                        .description(
+                                                "Enter your JWT token (without the Bearer prefix)"));
 
         return new OpenAPI()
                 .openapi("3.0.1")

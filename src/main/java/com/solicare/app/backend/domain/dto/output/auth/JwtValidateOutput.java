@@ -3,6 +3,7 @@ package com.solicare.app.backend.domain.dto.output.auth;
 import com.solicare.app.backend.domain.dto.output.OperationOutput;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import lombok.Getter;
 @AllArgsConstructor(staticName = "of")
 public class JwtValidateOutput implements OperationOutput {
     private Status status;
-    private Claims claims;
+    private Jws<Claims> jwsClaims;
     private Exception exception;
 
     @Override

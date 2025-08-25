@@ -6,6 +6,7 @@ import com.solicare.app.backend.application.mapper.MemberMapper;
 import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
 import com.solicare.app.backend.domain.entity.Member;
+import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.global.auth.JwtTokenProvider;
 
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -39,7 +42,7 @@ public class MemberService {
         }
         Member newMember = memberMapper.toEntity(dto);
         memberRepository.save(newMember);
-        String jwtToken = jwtTokenProvider.createToken(newMember.getEmail(), newMember.getUuid());
+        String jwtToken = jwtTokenProvider.createToken(List.of(Role.MEMBER), newMember.getUuid());
         return MemberJoinOutput.of(
                 MemberJoinOutput.Status.SUCCESS, new MemberResponseDTO.Join(jwtToken), null);
     }
@@ -59,7 +62,7 @@ public class MemberService {
         if (!passwordEncoder.matches(dto.password(), member.getPassword())) {
             return MemberLoginOutput.of(MemberLoginOutput.Status.INVALID_PASSWORD, null, null);
         }
-        String jwtToken = jwtTokenProvider.createToken(member.getEmail(), member.getUuid());
+        String jwtToken = jwtTokenProvider.createToken(List.of(Role.MEMBER), member.getUuid());
         return MemberLoginOutput.of(
                 MemberLoginOutput.Status.SUCCESS,
                 new MemberResponseDTO.Login(member.getName(), jwtToken),
