@@ -10,16 +10,15 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 
 import javax.crypto.SecretKey;
 
-@Component
+@Service
 public class JwtTokenProvider {
-
     private final SecretKey SIGNING_KEY;
     private final int expirationMinutes;
 

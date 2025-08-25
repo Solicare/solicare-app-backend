@@ -6,15 +6,18 @@ import com.solicare.app.backend.domain.entity.Member;
 import com.solicare.app.backend.domain.enums.PushDeviceType;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+@Transactional(readOnly = true)
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class PushService {
     private final FcmService fcmService;
     private final MemberRepository memberRepository;

@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Member", description = "회원 관련 API")
 @RestController
 @RequestMapping("/api/member")
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberController {
     private final MemberService memberService;
 

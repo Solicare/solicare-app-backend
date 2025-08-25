@@ -1,9 +1,12 @@
 package com.solicare.app.backend.global.config;
 
+import com.solicare.app.backend.domain.repository.MemberRepository;
+import com.solicare.app.backend.domain.repository.SeniorRepository;
 import com.solicare.app.backend.global.auth.JwtAuthFilter;
+import com.solicare.app.backend.global.auth.JwtTokenProvider;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.context.annotation.Bean;
@@ -22,14 +25,21 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.Collections;
 
-@Configuration
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Slf4j
+@Configuration
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class SecurityConfig {
-    private final JwtAuthFilter jwtAuthFilter;
+    @Bean
+    public JwtAuthFilter jwtAuthFilter(
+            JwtTokenProvider jwtTokenProvider,
+            MemberRepository memberRepository,
+            SeniorRepository seniorRepository) {
+        return new JwtAuthFilter(jwtTokenProvider, memberRepository, seniorRepository);
+    }
 
     @Bean
-    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain apiSecurityFilterChain(
+            HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

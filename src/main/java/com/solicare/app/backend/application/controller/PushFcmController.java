@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Push-FCM", description = "FCM푸시 관련 API")
 @RestController
 @RequestMapping("/api/push/fcm")
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class PushFcmController {
     private final PushService pushService;
 

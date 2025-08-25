@@ -34,13 +34,7 @@ public final class FcmRequestDTO {
                             example = "fcm_device_token_here",
                             requiredMode = Schema.RequiredMode.REQUIRED)
                     @NotBlank(message = "토큰은 필수입니다.")
-                    String token,
-            @Schema(
-                            description = "로컬 디바이스 번호",
-                            example = "010-1234-5678",
-                            requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "")
-                    String localDeviceNumber) {}
+                    String token) {}
 
     public record Delete(
             @Schema(

@@ -40,7 +40,7 @@ public final class MemberRequestDTO {
                             description = "이메일",
                             example = "address@test.com",
                             requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "이메일는 필수입니다.")
+                    @NotBlank(message = "이메일은 필수입니다.")
                     String email,
             @Schema(
                             description = "비밀번호",
