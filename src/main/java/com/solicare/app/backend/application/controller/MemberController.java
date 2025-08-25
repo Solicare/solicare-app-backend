@@ -42,12 +42,12 @@ public class MemberController {
                 description = "중복 회원")
     })
     @PostMapping("/join")
-    public ResponseEntity<ApiResponse<MemberResponseDTO.Join>> join(
+    public ResponseEntity<ApiResponse<MemberJoinOutput>> join(
             @Schema(name = "MemberRequestJoin", description = "회원가입 요청 DTO") @RequestBody @Valid
                     MemberRequestDTO.Join memberJoinRequestDTO) {
         MemberJoinOutput result = memberService.createAndIssueToken(memberJoinRequestDTO);
         // TODO: check result of creation and respond accordingly
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
+        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
     }
 
     @Operation(summary = "로그인", description = "전화번호와 비밀번호로 로그인합니다.")
@@ -60,11 +60,11 @@ public class MemberController {
                 description = "자격 증명 실패")
     })
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<MemberResponseDTO.Login>> login(
+    public ResponseEntity<ApiResponse<MemberLoginOutput>> login(
             @RequestBody @Valid MemberRequestDTO.Login memberLoginRequestDTO) {
-        MemberLoginOutput resp = memberService.loginAndIssueToken(memberLoginRequestDTO);
+        MemberLoginOutput result = memberService.loginAndIssueToken(memberLoginRequestDTO);
         // TODO: check result of creation and respond accordingly
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
+        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
     }
 
     @GetMapping("profile?uuid={uuid}")
