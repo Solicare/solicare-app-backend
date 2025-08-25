@@ -5,12 +5,13 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.solicare.app.backend.domain.dto.output.push.FcmSendOutputDetail;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class FcmService {
     private final FirebaseMessaging firebaseMessaging;
 

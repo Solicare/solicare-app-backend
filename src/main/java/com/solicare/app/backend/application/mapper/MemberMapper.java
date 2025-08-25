@@ -4,13 +4,14 @@ import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.domain.entity.Member;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
-@AllArgsConstructor
+@Service
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberMapper {
     private final PasswordEncoder passwordEncoder;
 

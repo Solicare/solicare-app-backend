@@ -12,6 +12,7 @@ import com.solicare.app.backend.global.auth.JwtTokenProvider;
 
 import jakarta.transaction.Transactional;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +22,7 @@ import java.util.List;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberService {
 
     private final JwtTokenProvider jwtTokenProvider;
