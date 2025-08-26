@@ -5,6 +5,7 @@ import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.application.mapper.MemberMapper;
 import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
+import com.solicare.app.backend.domain.dto.output.member.MemberProfileOutput;
 import com.solicare.app.backend.domain.entity.Member;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
@@ -69,4 +70,17 @@ public class MemberService {
                 new MemberResponseDTO.Login(member.getName(), jwtToken),
                 null);
     }
+
+    public MemberProfileOutput getProfile(String uuid) {
+        Member member = memberRepository.findByUuid(uuid).orElse(null);
+        if (member == null) {
+            return MemberProfileOutput.of(MemberProfileOutput.Status.NOT_FOUND, null, null);
+        }
+        MemberResponseDTO.Profile profile = memberMapper.toProfileDTO(member);
+        return MemberProfileOutput.of(MemberProfileOutput.Status.SUCCESS, profile, null);
+    }
+
+    // TODO: implement method getSeniorProfilesUnderCare which returns
+    //  MemberResponse.SeniorsUnderCare having field seniors:List<SeniorProfileOutput>
+    // TODO: diverse SeniorProfileOutput Context(by member of care or admin or self)
 }

@@ -8,9 +8,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class MemberInfoOutput implements OperationOutput {
+public class MemberProfileOutput implements OperationOutput {
     private Status status;
-    private MemberResponseDTO.Login response;
+    private MemberResponseDTO.Profile response;
     private Exception exception;
 
     @Override
@@ -20,8 +20,7 @@ public class MemberInfoOutput implements OperationOutput {
 
     public enum Status {
         SUCCESS,
-        USER_NOT_FOUND,
-        INVALID_PASSWORD,
+        NOT_FOUND,
         ERROR
     }
 }

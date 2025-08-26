@@ -1,6 +1,7 @@
 package com.solicare.app.backend.domain.enums;
 
 public enum Role {
+    ADMIN,
     MEMBER,
     SENIOR;
 
