@@ -9,6 +9,6 @@ import org.springframework.stereotype.Service;
 public class PushDeviceMapper {
     public PushDeviceDTO from(PushDevice pushDevice) {
         return new PushDeviceDTO(
-                pushDevice.getEnabled(), pushDevice.getType(), pushDevice.getToken());
+                pushDevice.isEnabled(), pushDevice.getType(), pushDevice.getToken());
     }
 }

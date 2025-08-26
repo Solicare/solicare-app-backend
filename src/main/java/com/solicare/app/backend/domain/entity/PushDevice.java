@@ -18,7 +18,7 @@ public class PushDevice {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String uuid;
 
-    @Builder.Default @Column private Boolean enabled = true;
+    @Builder.Default @Column private boolean enabled = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
