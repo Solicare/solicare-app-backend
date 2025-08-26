@@ -1,4 +1,4 @@
-name: Test Deploy to Github Actions Runner
+name: Test Deploy to GitHub Hosted Runner
 
 on:
   pull_request:
@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: 'test-deploy-to-github-runner'
     outputs:
       deployment_id: ${{ steps.deployment.outputs.deployment_id }}
       jar_path: ${{ steps.jar.outputs.jar_path }}

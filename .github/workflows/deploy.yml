@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: self-hosted
+    environment: 'aws-lightsail-solicare-instance'
     outputs:
       deployment_id: ${{ steps.deployment.outputs.deployment_id }}
     steps:
