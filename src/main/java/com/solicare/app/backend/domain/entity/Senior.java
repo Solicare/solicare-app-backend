@@ -20,7 +20,7 @@ public class Senior {
     @Column(nullable = false, length = 20, unique = true)
     private String userId;
 
-    @Column(nullable = false, length = 4)
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)

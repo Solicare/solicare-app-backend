@@ -1,6 +1,8 @@
 package com.solicare.app.backend.application.controller;
 
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
+import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
+import com.solicare.app.backend.application.mapper.MemberMapper;
 import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberProfileOutput;
@@ -25,6 +27,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @Tag(name = "Member", description = "회원 관련 API")
 @RestController
 @RequestMapping("/api/member")
@@ -32,6 +36,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
     private final MemberService memberService;
     private final ApiResponseFactory apiResponseFactory;
+    private final MemberMapper memberMapper;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @ApiResponses({
@@ -82,6 +87,21 @@ public class MemberController {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 정보만 조회 가능합니다.");
         }
         MemberProfileOutput result = memberService.getProfile(uuid);
-        return apiResponseFactory.onSuccess(result);
+        if (!result.isSuccess()) {
+            // 에러 메시지 출력하기
+        }
+        return apiResponseFactory.onSuccess(result.getResponse());
+    }
+
+    @Operation(summary = "돌봄 시니어 목록 조회", description = "현재 로그인된 회원이 돌보고 있는 시니어 목록을 조회합니다.")
+    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    @GetMapping("/seniors/caring")
+    public ResponseEntity<ApiResponse<Object>> getSeniorsCaredByMember(@NonNull Authentication authentication) {
+        String memberUuid = authentication.getName();
+        Optional<MemberResponseDTO.Seniors> result = memberService.getSeniorsUnderCare(memberUuid);
+
+        return result
+                .<ResponseEntity<ApiResponse<Object>>>map(apiResponseFactory::onSuccess)
+                .orElseGet(() -> apiResponseFactory.onFailure(ApiStatus._NOT_FOUND, "해당 회원을 찾을 수 없습니다."));
     }
 }

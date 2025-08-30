@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class MemberResponseDTO {
   @Schema(name = "MemberJoinResponse", description = "회원가입 응답 DTO")
@@ -19,4 +21,10 @@ public final class MemberResponseDTO {
       @Schema(description = "이름") String name,
       @Schema(description = "이메일") String email,
       @Schema(description = "휴대폰번호") String phoneNumber) {}
+
+  @Schema(name = "MemberSeniorsResponse", description = "돌봄 대상 목록 응답 DTO")
+  public record Seniors(
+          @Schema(description = "돌봄 대상 시니어 프로필 목록") List<SeniorResponseDTO.Profile> seniors
+  ) {}
 }
+

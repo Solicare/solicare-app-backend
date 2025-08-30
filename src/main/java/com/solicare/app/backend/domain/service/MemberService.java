@@ -2,7 +2,9 @@ package com.solicare.app.backend.domain.service;
 
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
+import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
 import com.solicare.app.backend.application.mapper.MemberMapper;
+import com.solicare.app.backend.application.mapper.SeniorMapper;
 import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberProfileOutput;
@@ -20,6 +22,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -30,6 +34,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SeniorMapper seniorMapper;
 
     // ================== 회원 가입 ==================
     /**
@@ -78,6 +83,16 @@ public class MemberService {
         }
         MemberResponseDTO.Profile profile = memberMapper.toProfileDTO(member);
         return MemberProfileOutput.of(MemberProfileOutput.Status.SUCCESS, profile, null);
+    }
+
+    public Optional<MemberResponseDTO.Seniors> getSeniorsUnderCare(String memberUuid) {
+        return memberRepository.findByUuid(memberUuid).map(member -> {
+            List<SeniorResponseDTO.Profile> seniorProfiles = member.getCareRelations().stream()
+                    .map(careRelation -> seniorMapper.toProfileDTO(careRelation.getSenior()))
+                    .collect(Collectors.toList());
+
+            return new MemberResponseDTO.Seniors(seniorProfiles);
+        });
     }
 
     // TODO: implement method getSeniorProfilesUnderCare which returns

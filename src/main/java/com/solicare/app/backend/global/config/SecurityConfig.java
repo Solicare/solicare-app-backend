@@ -64,6 +64,8 @@ public class SecurityConfig {
                                                 "/swagger-resources/**",
                                                 "/api/member/join",
                                                 "/api/member/login",
+                                                "/api/senior/join",
+                                                "/api/senior/login",
                                                 "/api/fcm/register/{token}",
                                                 "/api/fcm/unregister/{token}")
                                         .permitAll()
