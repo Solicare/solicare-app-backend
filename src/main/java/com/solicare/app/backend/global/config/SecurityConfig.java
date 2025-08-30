@@ -1,14 +1,15 @@
 package com.solicare.app.backend.global.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
 import com.solicare.app.backend.global.auth.JwtAuthFilter;
 import com.solicare.app.backend.global.auth.JwtTokenProvider;
-
+import com.solicare.app.backend.global.apiPayload.ApiResponse;
+import com.solicare.app.backend.global.apiPayload.response.status.GlobalStatus;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,12 +30,17 @@ import java.util.Collections;
 @Configuration
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class SecurityConfig {
+
+    // 💥 ObjectMapper를 주입받아 예외 처리 핸들러에서 사용
+    private final ObjectMapper objectMapper;
+
     @Bean
     public JwtAuthFilter jwtAuthFilter(
             JwtTokenProvider jwtTokenProvider,
             MemberRepository memberRepository,
             SeniorRepository seniorRepository) {
-        return new JwtAuthFilter(jwtTokenProvider, memberRepository, seniorRepository);
+        // 💥 JwtAuthFilter 생성 시 ObjectMapper를 전달
+        return new JwtAuthFilter(jwtTokenProvider, memberRepository, seniorRepository, objectMapper);
     }
 
     @Bean
@@ -73,13 +79,11 @@ public class SecurityConfig {
                                                             request,
                                                             authException);
 
-                                                    response.setStatus(401);
-                                                    response.setContentType("application/json");
-
-                                                    // TODO: modify to respond via ApiResponse<T>
-                                                    response.getWriter()
-                                                            .write(
-                                                                    "{\"message\":\"Authentification needed.\", \"reason\":\"Authorization Header is required\"}");
+                                                    // 💥 수정된 부분: ApiResponse 형식으로 401 응답
+                                                    response.setStatus(GlobalStatus._UNAUTHORIZED.getHttpStatus().value());
+                                                    response.setContentType("application/json;charset=UTF-8");
+                                                    ApiResponse<Void> apiResponse = ApiResponse.onFailure(GlobalStatus._UNAUTHORIZED);
+                                                    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
                                                 })
                                         .accessDeniedHandler(
                                                 (request, response, accessDeniedException) -> {
@@ -88,15 +92,12 @@ public class SecurityConfig {
                                                             request,
                                                             accessDeniedException);
 
-                                                    response.setStatus(403);
-                                                    response.setContentType("application/json");
-
-                                                    // TODO: modify to respond via ApiResponse<T>
-                                                    response.getWriter()
-                                                            .write(
-                                                                    "{\"message\":\"Access denied.\", \"reason\":\"You do not have permission to access this resource.\"}");
+                                                    // 💥 수정된 부분: ApiResponse 형식으로 403 응답
+                                                    response.setStatus(GlobalStatus._FORBIDDEN.getHttpStatus().value());
+                                                    response.setContentType("application/json;charset=UTF-8");
+                                                    ApiResponse<Void> apiResponse = ApiResponse.onFailure(GlobalStatus._FORBIDDEN);
+                                                    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
                                                 }))
-                // Use JwtAuthFilter instead of UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -105,13 +106,8 @@ public class SecurityConfig {
             String handlerName,
             jakarta.servlet.http.HttpServletRequest request,
             Exception exception) {
-        log.error("{} triggered!", handlerName);
-        log.error("Request URI: {}", request.getRequestURI());
-        log.error("Request Method: {}", request.getMethod());
-        log.error("Authorization Header: {}", request.getHeader("Authorization"));
-        log.error("Exception: {}", exception.getClass().getSimpleName());
-        log.error("Exception Message: {}", exception.getMessage());
-        log.error("Exception Stack Trace: ", exception);
+        log.warn("{} triggered for request URI: {}", handlerName, request.getRequestURI());
+        log.warn("Exception: {}", exception.getMessage());
     }
 
     @Bean
@@ -121,10 +117,10 @@ public class SecurityConfig {
                 Arrays.asList(
                         "http://localhost",
                         "http://localhost:*",
-                        "https://*.solicare.kro.kr")); // localhost와 *.solicare.kro.kr 허용
-        configuration.setAllowedMethods(Collections.singletonList("*")); // 모든 HTTP 메서드 허용
-        configuration.setAllowedHeaders(Collections.singletonList("*")); // 모든 Header 허용
-        configuration.setAllowCredentials(true); // 인증 정보 포함 허용
+                        "https://*.solicare.kro.kr"));
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

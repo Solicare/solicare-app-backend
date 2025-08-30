@@ -6,9 +6,9 @@ import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberProfileOutput;
 import com.solicare.app.backend.domain.service.MemberService;
 import com.solicare.app.backend.global.apiPayload.ApiResponse;
-import com.solicare.app.backend.global.apiPayload.response.status.ErrorStatus;
-import com.solicare.app.backend.global.apiPayload.response.status.SuccessStatus;
 
+import com.solicare.app.backend.global.apiPayload.exception.CustomException;
+import com.solicare.app.backend.global.apiPayload.response.status.GlobalStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -49,8 +49,7 @@ public class MemberController {
             @Schema(name = "MemberRequestJoin", description = "회원가입 요청 DTO") @RequestBody @Valid
                     MemberRequestDTO.Join memberJoinRequestDTO) {
         MemberJoinOutput result = memberService.createAndIssueToken(memberJoinRequestDTO);
-        // TODO: check result of creation and respond accordingly via ApiResponse<T>
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
 
     @Operation(summary = "로그인", description = "전화번호와 비밀번호로 로그인합니다.")
@@ -66,8 +65,7 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberLoginOutput>> login(
             @RequestBody @Valid MemberRequestDTO.Login memberLoginRequestDTO) {
         MemberLoginOutput result = memberService.loginAndIssueToken(memberLoginRequestDTO);
-        // TODO: check result of login and respond accordingly via ApiResponse<T>
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
 
     @PreAuthorize("hasAuthority('ROLE_MEMBER') or hasAuthority('ROLE_ADMIN')")
@@ -80,17 +78,9 @@ public class MemberController {
 
         System.out.print(authentication.getName());
         if (!isAdmin && !authentication.getName().equals(uuid)) {
-            // TODO: respond via ApiResponse<T> by global-access-exception-handler
-            //  with details(Reason, roles required, roles current have, self-allowed, etc)
-            return ResponseEntity.status(403)
-                    .body(
-                            ApiResponse.onFailure(
-                                    ErrorStatus._FORBIDDEN.getCode(),
-                                    ErrorStatus._FORBIDDEN.getMessage(),
-                                    null));
+            throw new CustomException(GlobalStatus._FORBIDDEN);
         }
         MemberProfileOutput result = memberService.getProfile(uuid);
-        // TODO: check result of login and respond accordingly via ApiResponse<T>
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
 }

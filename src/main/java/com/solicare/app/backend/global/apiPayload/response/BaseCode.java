@@ -1,8 +1,9 @@
 package com.solicare.app.backend.global.apiPayload.response;
 
+import org.springframework.http.HttpStatus;
+
 public interface BaseCode {
-
-    ReasonDTO getReason();
-
-    ReasonDTO getReasonHttpStatus();
+    HttpStatus getHttpStatus();
+    String getCode();
+    String getMessage();
 }

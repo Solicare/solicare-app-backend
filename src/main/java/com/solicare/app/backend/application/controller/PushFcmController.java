@@ -3,8 +3,6 @@ package com.solicare.app.backend.application.controller;
 import com.solicare.app.backend.application.dto.request.FcmRequestDTO;
 import com.solicare.app.backend.domain.service.PushService;
 import com.solicare.app.backend.global.apiPayload.ApiResponse;
-import com.solicare.app.backend.global.apiPayload.response.status.ErrorStatus;
-import com.solicare.app.backend.global.apiPayload.response.status.SuccessStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,9 +35,8 @@ public class PushFcmController {
         // fcmSendRequestDTO.body());
         //    if (result.getStatus() == FcmSendOutputDetail.Status.SENT) {
         //      return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
-        return ResponseEntity.ok(
-                ApiResponse.onFailure(
-                        ErrorStatus._INTERNAL_SERVER_ERROR.getCode(), "FCM발송중 오류가 발생했습니다", null));
+
+        return ResponseEntity.ok(ApiResponse.onSuccess());
     }
 
     @PutMapping("/register/{token}") // 등록
@@ -50,7 +47,7 @@ public class PushFcmController {
                     @RequestBody
                     @Valid
                     FcmRequestDTO.Register req) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
+        return ResponseEntity.ok(ApiResponse.onSuccess());
     }
 
     @DeleteMapping("/unregister/{token}") // 등록 해제
@@ -61,7 +58,8 @@ public class PushFcmController {
                     @RequestBody
                     @Valid
                     FcmRequestDTO.Delete req) {
-        return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
+        //return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
+        return ResponseEntity.ok(ApiResponse.onSuccess());
     }
 
     // TODO: implement different status handling after refactoring PushService
