@@ -5,10 +5,10 @@ import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
 import com.solicare.app.backend.domain.dto.output.member.MemberProfileOutput;
 import com.solicare.app.backend.domain.service.MemberService;
-import com.solicare.app.backend.global.apiPayload.ApiResponse;
+import com.solicare.app.backend.global.res.ApiResponse;
+import com.solicare.app.backend.global.res.ApiResponseFactory;
+import com.solicare.app.backend.global.res.ApiStatus;
 
-import com.solicare.app.backend.global.apiPayload.exception.CustomException;
-import com.solicare.app.backend.global.apiPayload.response.status.GlobalStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberController {
     private final MemberService memberService;
+    private final ApiResponseFactory apiResponseFactory;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @ApiResponses({
@@ -49,7 +50,7 @@ public class MemberController {
             @Schema(name = "MemberRequestJoin", description = "회원가입 요청 DTO") @RequestBody @Valid
                     MemberRequestDTO.Join memberJoinRequestDTO) {
         MemberJoinOutput result = memberService.createAndIssueToken(memberJoinRequestDTO);
-        return ResponseEntity.ok(ApiResponse.onSuccess(result));
+        return apiResponseFactory.onSuccess(result);
     }
 
     @Operation(summary = "로그인", description = "전화번호와 비밀번호로 로그인합니다.")
@@ -65,12 +66,12 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberLoginOutput>> login(
             @RequestBody @Valid MemberRequestDTO.Login memberLoginRequestDTO) {
         MemberLoginOutput result = memberService.loginAndIssueToken(memberLoginRequestDTO);
-        return ResponseEntity.ok(ApiResponse.onSuccess(result));
+        return apiResponseFactory.onSuccess(result);
     }
 
     @PreAuthorize("hasAuthority('ROLE_MEMBER') or hasAuthority('ROLE_ADMIN')")
     @GetMapping("/profile")
-    public ResponseEntity<ApiResponse<MemberProfileOutput>> getProfile(
+    public ResponseEntity<ApiResponse<Object>> getProfile(
             @NonNull Authentication authentication, @RequestParam("uuid") String uuid) {
         boolean isAdmin =
                 authentication.getAuthorities().stream()
@@ -78,9 +79,9 @@ public class MemberController {
 
         System.out.print(authentication.getName());
         if (!isAdmin && !authentication.getName().equals(uuid)) {
-            throw new CustomException(GlobalStatus._FORBIDDEN);
+            return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 정보만 조회 가능합니다.");
         }
         MemberProfileOutput result = memberService.getProfile(uuid);
-        return ResponseEntity.ok(ApiResponse.onSuccess(result));
+        return apiResponseFactory.onSuccess(result);
     }
 }

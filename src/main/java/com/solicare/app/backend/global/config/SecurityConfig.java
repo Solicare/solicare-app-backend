@@ -5,11 +5,13 @@ import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
 import com.solicare.app.backend.global.auth.JwtAuthFilter;
 import com.solicare.app.backend.global.auth.JwtTokenProvider;
-import com.solicare.app.backend.global.apiPayload.ApiResponse;
-import com.solicare.app.backend.global.apiPayload.response.status.GlobalStatus;
+import com.solicare.app.backend.global.res.ApiResponse;
+import com.solicare.app.backend.global.res.ApiStatus;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,8 +32,6 @@ import java.util.Collections;
 @Configuration
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class SecurityConfig {
-
-    // 💥 ObjectMapper를 주입받아 예외 처리 핸들러에서 사용
     private final ObjectMapper objectMapper;
 
     @Bean
@@ -39,8 +39,7 @@ public class SecurityConfig {
             JwtTokenProvider jwtTokenProvider,
             MemberRepository memberRepository,
             SeniorRepository seniorRepository) {
-        // 💥 JwtAuthFilter 생성 시 ObjectMapper를 전달
-        return new JwtAuthFilter(jwtTokenProvider, memberRepository, seniorRepository, objectMapper);
+        return JwtAuthFilter.of(jwtTokenProvider, memberRepository, seniorRepository, objectMapper);
     }
 
     @Bean
@@ -79,11 +78,24 @@ public class SecurityConfig {
                                                             request,
                                                             authException);
 
-                                                    // 💥 수정된 부분: ApiResponse 형식으로 401 응답
-                                                    response.setStatus(GlobalStatus._UNAUTHORIZED.getHttpStatus().value());
-                                                    response.setContentType("application/json;charset=UTF-8");
-                                                    ApiResponse<Void> apiResponse = ApiResponse.onFailure(GlobalStatus._UNAUTHORIZED);
-                                                    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+                                                    response.setStatus(
+                                                            ApiStatus._UNAUTHORIZED
+                                                                    .getHttpStatus()
+                                                                    .value());
+                                                    response.setContentType(
+                                                            "application/json;charset=UTF-8");
+                                                    response.getWriter()
+                                                            .write(
+                                                                    objectMapper.writeValueAsString(
+                                                                            ApiResponse.of(
+                                                                                    false,
+                                                                                    ApiStatus
+                                                                                            ._UNAUTHORIZED
+                                                                                            .getCode(),
+                                                                                    ApiStatus
+                                                                                            ._UNAUTHORIZED
+                                                                                            .getMessage(),
+                                                                                    null)));
                                                 })
                                         .accessDeniedHandler(
                                                 (request, response, accessDeniedException) -> {
@@ -92,11 +104,24 @@ public class SecurityConfig {
                                                             request,
                                                             accessDeniedException);
 
-                                                    // 💥 수정된 부분: ApiResponse 형식으로 403 응답
-                                                    response.setStatus(GlobalStatus._FORBIDDEN.getHttpStatus().value());
-                                                    response.setContentType("application/json;charset=UTF-8");
-                                                    ApiResponse<Void> apiResponse = ApiResponse.onFailure(GlobalStatus._FORBIDDEN);
-                                                    response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
+                                                    response.setStatus(
+                                                            ApiStatus._FORBIDDEN
+                                                                    .getHttpStatus()
+                                                                    .value());
+                                                    response.setContentType(
+                                                            "application/json;charset=UTF-8");
+                                                    response.getWriter()
+                                                            .write(
+                                                                    objectMapper.writeValueAsString(
+                                                                            ApiResponse.of(
+                                                                                    false,
+                                                                                    ApiStatus
+                                                                                            ._FORBIDDEN
+                                                                                            .getCode(),
+                                                                                    ApiStatus
+                                                                                            ._FORBIDDEN
+                                                                                            .getMessage(),
+                                                                                    null)));
                                                 }))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -115,9 +140,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(
                 Arrays.asList(
-                        "http://localhost",
-                        "http://localhost:*",
-                        "https://*.solicare.kro.kr"));
+                        "http://localhost", "http://localhost:*", "https://*.solicare.kro.kr"));
         configuration.setAllowedMethods(Collections.singletonList("*"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);

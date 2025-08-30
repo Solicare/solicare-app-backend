@@ -2,7 +2,8 @@ package com.solicare.app.backend.application.controller;
 
 import com.solicare.app.backend.application.dto.request.FcmRequestDTO;
 import com.solicare.app.backend.domain.service.PushService;
-import com.solicare.app.backend.global.apiPayload.ApiResponse;
+import com.solicare.app.backend.global.res.ApiResponse;
+import com.solicare.app.backend.global.res.ApiResponseFactory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class PushFcmController {
     private final PushService pushService;
+    private final ApiResponseFactory apiResponseFactory;
 
     @PostMapping("/push")
     public ResponseEntity<ApiResponse<Void>> pushMessage(
@@ -36,7 +38,7 @@ public class PushFcmController {
         //    if (result.getStatus() == FcmSendOutputDetail.Status.SENT) {
         //      return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, result));
 
-        return ResponseEntity.ok(ApiResponse.onSuccess());
+        return apiResponseFactory.onSuccess(null);
     }
 
     @PutMapping("/register/{token}") // 등록
@@ -47,7 +49,7 @@ public class PushFcmController {
                     @RequestBody
                     @Valid
                     FcmRequestDTO.Register req) {
-        return ResponseEntity.ok(ApiResponse.onSuccess());
+        return apiResponseFactory.onSuccess(null);
     }
 
     @DeleteMapping("/unregister/{token}") // 등록 해제
@@ -58,9 +60,7 @@ public class PushFcmController {
                     @RequestBody
                     @Valid
                     FcmRequestDTO.Delete req) {
-        //return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
-        return ResponseEntity.ok(ApiResponse.onSuccess());
+        // return ResponseEntity.ok(ApiResponse.onSuccess(SuccessStatus._OK, null));
+        return apiResponseFactory.onSuccess(null);
     }
-
-    // TODO: implement different status handling after refactoring PushService
 }

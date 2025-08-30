@@ -5,17 +5,21 @@ import com.solicare.app.backend.domain.dto.output.auth.JwtValidateOutput;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
-import com.solicare.app.backend.global.apiPayload.ApiResponse;
-import com.solicare.app.backend.global.apiPayload.response.status.GlobalStatus;
+import com.solicare.app.backend.global.res.ApiResponse;
+import com.solicare.app.backend.global.res.ApiStatus;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,12 +32,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(staticName = "of")
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
     private final SeniorRepository seniorRepository;
-    // 💥 ObjectMapper를 주입받아 ApiResponse를 JSON으로 변환하는 데 사용
     private final ObjectMapper objectMapper;
 
     @Override
@@ -147,19 +150,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 💥 추가된 헬퍼 메서드:
-     * Spring Security Filter 단에서 ApiResponse 형식의 에러 응답을 생성합니다.
+     * 💥 추가된 헬퍼 메서드: Spring Security Filter 단에서 ApiResponse 형식의 에러 응답을 생성합니다.
+     *
      * @param response HttpServletResponse
      * @param message 응답 메시지에 포함될 동적 메시지
      */
-    private void sendErrorResponse(HttpServletResponse response, String message) throws IOException {
-        GlobalStatus errorStatus = GlobalStatus._UNAUTHORIZED;
+    private void sendErrorResponse(HttpServletResponse response, String message)
+            throws IOException {
+        ApiStatus errorStatus = ApiStatus._UNAUTHORIZED;
         response.setStatus(errorStatus.getHttpStatus().value());
         response.setContentType("application/json;charset=UTF-8");
-
-        ApiResponse<Void> apiResponse = ApiResponse.onFailure(errorStatus.getCode(), message, null);
-        String jsonResponse = objectMapper.writeValueAsString(apiResponse);
-
+        String jsonResponse =
+                objectMapper.writeValueAsString(
+                        ApiResponse.of(false, errorStatus.getCode(), message, null));
         response.getWriter().write(jsonResponse);
     }
 
