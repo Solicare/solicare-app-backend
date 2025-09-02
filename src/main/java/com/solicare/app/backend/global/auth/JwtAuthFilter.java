@@ -62,7 +62,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (!header.startsWith("Bearer ")) {
             log.info("❌ Authorization header does not start with Bearer: {}", header);
-            // 💥 수정된 부분: ApiResponse 형식으로 응답
             sendErrorResponse(response, "Authorization Header is not Bearer format");
             return;
         }
@@ -100,7 +99,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (roles.isEmpty()) {
             log.info("❌ Role claim is missing in token");
-            // 💥 수정된 부분: ApiResponse 형식으로 응답
             sendErrorResponse(response, "Role claim is missing in token.");
             return;
         }
@@ -114,7 +112,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (authorities.isEmpty()) {
             log.info("❌ No valid authorities found for user");
-            // 💥 수정된 부분: ApiResponse 형식으로 응답
             sendErrorResponse(response, "No valid authorities found for user.");
             return;
         }
@@ -145,7 +142,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             case JwtValidateOutput.Status.EXPIRED -> reason = "Expired token";
             default -> reason = "Unknown token error";
         }
-        // 💥 수정된 부분: ApiResponse 형식으로 응답
         sendErrorResponse(response, reason);
     }
 
@@ -185,8 +181,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private boolean validateRoleWithSubject(Role role, String subject) {
         return switch (role) {
             case MEMBER -> memberRepository.existsByUuid(subject);
-            case SENIOR -> seniorRepository.existsByUserId(subject);
-            // 'ADMIN'과 같은 다른 역할은 DB 검증 없이 통과시킬 수 있습니다.
+            case SENIOR -> seniorRepository.existsByUuid(subject);
             case ADMIN -> true;
         };
     }

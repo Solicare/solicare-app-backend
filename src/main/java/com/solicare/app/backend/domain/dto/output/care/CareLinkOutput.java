@@ -1,15 +1,15 @@
 package com.solicare.app.backend.domain.dto.output.care;
 
-import com.solicare.app.backend.application.dto.res.CareRelationResponseDTO;
 import com.solicare.app.backend.domain.dto.output.OperationOutput;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class CareLinkOutput implements OperationOutput {
+public class CareLinkOutput<ProfileResponse> implements OperationOutput {
     private Status status;
-    private CareRelationResponseDTO.Link response;
+    private ProfileResponse response;
     private Exception exception;
 
     @Override
@@ -21,8 +21,9 @@ public class CareLinkOutput implements OperationOutput {
         SUCCESS,
         MEMBER_NOT_FOUND,
         SENIOR_NOT_FOUND,
+        INVALID_MEMBER_PASSWORD,
         INVALID_SENIOR_PASSWORD,
-        RELATION_ALREADY_EXISTS,
+        ALREADY_LINKED,
         ERROR
     }
 }

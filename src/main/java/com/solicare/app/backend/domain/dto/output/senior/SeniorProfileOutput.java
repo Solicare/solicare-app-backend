@@ -1,16 +1,16 @@
-// SeniorJoinOutput.java
 package com.solicare.app.backend.domain.dto.output.senior;
 
-import com.solicare.app.backend.application.dto.res.SeniorAuthResponseDTO;
+import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
 import com.solicare.app.backend.domain.dto.output.OperationOutput;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class SeniorJoinOutput implements OperationOutput {
+public class SeniorProfileOutput implements OperationOutput {
     private Status status;
-    private SeniorAuthResponseDTO.Join response;
+    private SeniorResponseDTO.Profile response;
     private Exception exception;
 
     @Override
@@ -20,7 +20,7 @@ public class SeniorJoinOutput implements OperationOutput {
 
     public enum Status {
         SUCCESS,
-        USER_ALREADY_EXISTS,
+        NOT_FOUND,
         ERROR
     }
 }

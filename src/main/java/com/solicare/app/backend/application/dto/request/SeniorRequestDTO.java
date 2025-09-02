@@ -14,74 +14,58 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SeniorRequestDTO {
-    @Schema(name = "SeniorRequestCreate", description = "모니터링 대상 연결 요청 DTO")
+    @Schema(name = "SeniorRequestCreate", description = "시니어 회원가입 요청 DTO")
     public record Create(
             @Schema(
-                            description = "연결 대상의 회원 UUID",
-                            example = "550e8400-e29b-41d4-a716-446655440000",
+                            description = "사용자 ID",
+                            example = "senioruser",
                             requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "연결 대상의 회원 UUID는 필수입니다.")
-                    String monitorUserUuid,
-            @Schema(
-                            description = "모니터링 대상의 등록 ID",
-                            example = "testuser",
-                            requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "모니터링 대상의 등록 ID는 필수입니다.")
+                    @NotBlank(message = "사용자 ID는 필수입니다.")
                     String userId,
             @Schema(
-                            description = "모니터링 대상의 등록 PW",
-                            example = "testpassword",
+                            description = "비밀번호",
+                            example = "password1234",
                             requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "모니터링 대상의 등록 PW는 필수입니다.")
+                    @NotBlank(message = "비밀번호는 필수입니다.")
                     String password,
             @Schema(
-                            description = "모니터링 대상 이름",
-                            example = "홍순자",
+                            description = "이름",
+                            example = "김어르신",
                             requiredMode = Schema.RequiredMode.REQUIRED)
                     @NotBlank(message = "이름은 필수입니다.")
                     String name,
-            @Schema(
-                            description = "모니터링 대상 성별",
-                            example = "MALE",
-                            allowableValues = {"MALE", "FEMALE", "OTHER"},
-                            requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotNull(message = "성별은 필수입니다.")
-                    Gender gender,
-            @Schema(
-                            description = "모니터링 대상 나이",
-                            example = "82",
-                            requiredMode = Schema.RequiredMode.REQUIRED)
+            @Schema(description = "나이", example = "82", requiredMode = Schema.RequiredMode.REQUIRED)
                     @NotNull(message = "나이는 필수입니다.")
                     @Min(value = 0, message = "나이는 0 이상이어야 합니다.")
                     @Max(value = 120, message = "나이는 120 이하이어야 합니다.")
                     Integer age,
-            @Schema(description = "모니터링 대상 전화번호", example = "010-1234-5678") String phoneNumber,
             @Schema(
-                            description = "모니터링 대상 주소",
-                            example = "서울특별시 동작구 흑석로 84",
+                            description = "성별",
+                            example = "FEMALE",
+                            requiredMode = Schema.RequiredMode.REQUIRED)
+                    @NotNull(message = "성별은 필수입니다.")
+                    Gender gender,
+            @Schema(description = "전화번호", example = "010-9876-5432") String phoneNumber,
+            @Schema(
+                            description = "주소",
+                            example = "서울특별시 강남구 테헤란로 212",
                             requiredMode = Schema.RequiredMode.REQUIRED)
                     @NotBlank(message = "주소는 필수입니다.")
                     String address,
-            @Schema(description = "특이사항", example = "고혈압 주의") String note) {}
+            @Schema(description = "특이사항", example = "주 3회 산책 필요") String note) {}
 
-    @Schema(name = "SeniorRequestLink", description = "모니터링 대상 연결 요청 DTO")
-    public record Link(
+    @Schema(name = "SeniorRequestLogin", description = "시니어 로그인 요청 DTO")
+    public record Login(
             @Schema(
-                            description = "연결 대상의 회원 UUID",
-                            example = "550e8400-e29b-41d4-a716-446655440000",
+                            description = "사용자 ID",
+                            example = "senioruser",
                             requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "연결 대상의 회원 UUID는 필수입니다.")
-                    String monitorUserUuid,
-            @Schema(
-                            description = "모니터링 대상의 등록 ID",
-                            example = "tester",
-                            requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "모니터링 대상의 등록 ID는 필수입니다.")
+                    @NotBlank(message = "사용자 ID는 필수입니다.")
                     String userId,
             @Schema(
-                            description = "모니터링 대상의 등록 PW",
-                            example = "password",
+                            description = "비밀번호",
+                            example = "password1234",
                             requiredMode = Schema.RequiredMode.REQUIRED)
-                    @NotBlank(message = "모니터링 대상의 등록 PW는 필수입니다.")
+                    @NotBlank(message = "비밀번호는 필수입니다.")
                     String password) {}
 }

@@ -1,4 +1,4 @@
-// SeniorLoginOutput.java
+// SeniorJoinOutput.java
 package com.solicare.app.backend.domain.dto.output.senior;
 
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
@@ -9,9 +9,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class SeniorLoginOutput implements OperationOutput {
+public class SeniorCreateOutput implements OperationOutput {
     private Status status;
-    private SeniorResponseDTO.Login response;
+    private SeniorResponseDTO.Create response;
     private Exception exception;
 
     @Override
@@ -21,8 +21,7 @@ public class SeniorLoginOutput implements OperationOutput {
 
     public enum Status {
         SUCCESS,
-        SENIOR_NOT_FOUND,
-        INVALID_PASSWORD,
+        SENIOR_ALREADY_EXISTS,
         ERROR
     }
 }

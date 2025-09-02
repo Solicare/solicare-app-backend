@@ -17,6 +17,9 @@ import java.util.List;
 @ToString(exclude = "password")
 public class Senior {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String uuid;
+
     @Column(nullable = false, length = 20, unique = true)
     private String userId;
 

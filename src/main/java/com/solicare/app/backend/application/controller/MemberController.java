@@ -1,11 +1,13 @@
 package com.solicare.app.backend.application.controller;
 
+import com.solicare.app.backend.application.dto.request.CareRequestDTO;
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
-import com.solicare.app.backend.application.mapper.MemberMapper;
-import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
-import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
-import com.solicare.app.backend.domain.dto.output.member.MemberProfileOutput;
+import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
+import com.solicare.app.backend.domain.dto.output.care.CareLinkOutput;
+import com.solicare.app.backend.domain.dto.output.care.CareQueryOutput;
+import com.solicare.app.backend.domain.dto.output.member.*;
+import com.solicare.app.backend.domain.service.CareService;
 import com.solicare.app.backend.domain.service.MemberService;
 import com.solicare.app.backend.global.res.ApiResponse;
 import com.solicare.app.backend.global.res.ApiResponseFactory;
@@ -27,18 +29,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @Tag(name = "Member", description = "회원 관련 API")
 @RestController
 @RequestMapping("/api/member")
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberController {
     private final MemberService memberService;
+    private final CareService careService;
     private final ApiResponseFactory apiResponseFactory;
-    private final MemberMapper memberMapper;
 
-    @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
+    @Operation(summary = "멤버 회원가입", description = "새로운 사용자를 등록합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -55,10 +55,11 @@ public class MemberController {
             @Schema(name = "MemberRequestJoin", description = "회원가입 요청 DTO") @RequestBody @Valid
                     MemberRequestDTO.Join memberJoinRequestDTO) {
         MemberJoinOutput result = memberService.createAndIssueToken(memberJoinRequestDTO);
+        // TODO: respond with appropriate status based on result not MemberJoinOutput
         return apiResponseFactory.onSuccess(result);
     }
 
-    @Operation(summary = "로그인", description = "전화번호와 비밀번호로 로그인합니다.")
+    @Operation(summary = "멤버 로그인", description = "전화번호와 비밀번호로 로그인합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
                 responseCode = "200",
@@ -71,11 +72,21 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberLoginOutput>> login(
             @RequestBody @Valid MemberRequestDTO.Login memberLoginRequestDTO) {
         MemberLoginOutput result = memberService.loginAndIssueToken(memberLoginRequestDTO);
+        // TODO: respond with appropriate status based on result not MemberLoginOutput
         return apiResponseFactory.onSuccess(result);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_MEMBER') or hasAuthority('ROLE_ADMIN')")
+    @Operation(summary = "멤버 정보조회", description = "멤버 UUID로 회원정보를 조회합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "200",
+                description = "조회 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                responseCode = "401",
+                description = "자격 증명 실패")
+    })
     @GetMapping("/profile")
+    @PreAuthorize("hasAuthority('ROLE_MEMBER') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ApiResponse<Object>> getProfile(
             @NonNull Authentication authentication, @RequestParam("uuid") String uuid) {
         boolean isAdmin =
@@ -87,21 +98,58 @@ public class MemberController {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 정보만 조회 가능합니다.");
         }
         MemberProfileOutput result = memberService.getProfile(uuid);
-        if (!result.isSuccess()) {
-            // 에러 메시지 출력하기
+        // TODO: respond with appropriate status based on result not MemberProfileOutput
+        return apiResponseFactory.onSuccess(result);
+    }
+
+    @Operation(
+            summary = "모니터링 대상 목록 조회",
+            description = "특정 회원의 UUID로, 해당 회원이 모니터링하는 시니어(모니터링 대상) 목록을 조회합니다.")
+    @PreAuthorize("hasAuthority('ROLE_MEMBER') or hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/{memberUuid}/seniors")
+    public ResponseEntity<ApiResponse<Object>> getCareSeniors(
+            @PathVariable String memberUuid, @NonNull Authentication authentication) {
+        boolean isAdmin =
+                authentication.getAuthorities().stream()
+                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin && !authentication.getName().equals(memberUuid)) {
+            return apiResponseFactory.onFailure(
+                    ApiStatus._FORBIDDEN, "본인만 자신의 모니터링 대상 목록을 조회할 수 있습니다.");
         }
+        CareQueryOutput<SeniorResponseDTO.Profile> result =
+                careService.querySeniorByMember(memberUuid);
+        // TODO: respond with appropriate status based on result not
+        //  CareQueryOutput<SeniorResponseDTO.Profile>
         return apiResponseFactory.onSuccess(result.getResponse());
     }
 
-    @Operation(summary = "돌봄 시니어 목록 조회", description = "현재 로그인된 회원이 돌보고 있는 시니어 목록을 조회합니다.")
+    @Operation(summary = "모니터링 대상 추가", description = "특정 회원의 UUID로, 해당 회원의 모니터링 대상(시니어)을 추가합니다.")
+    @PostMapping("/{memberUuid}/seniors")
     @PreAuthorize("hasAuthority('ROLE_MEMBER')")
-    @GetMapping("/seniors/caring")
-    public ResponseEntity<ApiResponse<Object>> getSeniorsCaredByMember(@NonNull Authentication authentication) {
-        String memberUuid = authentication.getName();
-        Optional<MemberResponseDTO.Seniors> result = memberService.getSeniorsUnderCare(memberUuid);
-
-        return result
-                .<ResponseEntity<ApiResponse<Object>>>map(apiResponseFactory::onSuccess)
-                .orElseGet(() -> apiResponseFactory.onFailure(ApiStatus._NOT_FOUND, "해당 회원을 찾을 수 없습니다."));
+    public ResponseEntity<ApiResponse<Object>> addCareSenior(
+            @PathVariable String memberUuid,
+            @NonNull Authentication authentication,
+            @RequestBody @Valid CareRequestDTO.LinkSenior requestDto) {
+        boolean isAdmin =
+                authentication.getAuthorities().stream()
+                        .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin && !authentication.getName().equals(memberUuid)) {
+            return apiResponseFactory.onFailure(
+                    ApiStatus._FORBIDDEN, "본인만 자신의 모니터링 대상을 추가할 수 있습니다");
+        }
+        CareLinkOutput<MemberResponseDTO.Profile> result =
+                careService.linkSeniorToMember(memberUuid, requestDto);
+        if (!result.isSuccess()) {
+            ApiStatus status =
+                    switch (result.getStatus()) {
+                        case MEMBER_NOT_FOUND, SENIOR_NOT_FOUND -> ApiStatus._NOT_FOUND;
+                        case INVALID_SENIOR_PASSWORD -> ApiStatus._UNAUTHORIZED;
+                        case ALREADY_LINKED -> ApiStatus._BAD_REQUEST;
+                        default -> ApiStatus._INTERNAL_SERVER_ERROR;
+                    };
+            return apiResponseFactory.onFailure(status, result.getStatus().name());
+            // TODO: improve body content not just status name, maybe with message field on enum
+        }
+        return apiResponseFactory.onSuccess(result.getResponse());
     }
 }
