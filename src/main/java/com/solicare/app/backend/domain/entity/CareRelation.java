@@ -21,7 +21,7 @@ public class CareRelation {
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "senior_user_id", nullable = false)
+    @JoinColumn(name = "senior_uuid", nullable = false)
     private Senior senior;
 
     @Column(nullable = false)

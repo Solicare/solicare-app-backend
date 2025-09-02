@@ -8,8 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface CareRelationRepository extends JpaRepository<CareRelation, Long> {
+public interface CareRelationRepository extends JpaRepository<CareRelation, String> {
     List<CareRelation> findByMember(Member member);
 
     List<CareRelation> findBySenior(Senior senior);
+
+    boolean existsByMemberAndSenior(Member member, Senior senior);
 }

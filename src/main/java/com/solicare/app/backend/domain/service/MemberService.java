@@ -3,9 +3,7 @@ package com.solicare.app.backend.domain.service;
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.application.mapper.MemberMapper;
-import com.solicare.app.backend.domain.dto.output.member.MemberJoinOutput;
-import com.solicare.app.backend.domain.dto.output.member.MemberLoginOutput;
-import com.solicare.app.backend.domain.dto.output.member.MemberProfileOutput;
+import com.solicare.app.backend.domain.dto.output.member.*;
 import com.solicare.app.backend.domain.entity.Member;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
@@ -25,11 +23,10 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberService {
-
     private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final MemberMapper memberMapper;
-    private final PasswordEncoder passwordEncoder;
 
     // ================== 회원 가입 ==================
     /**
@@ -79,8 +76,4 @@ public class MemberService {
         MemberResponseDTO.Profile profile = memberMapper.toProfileDTO(member);
         return MemberProfileOutput.of(MemberProfileOutput.Status.SUCCESS, profile, null);
     }
-
-    // TODO: implement method getSeniorProfilesUnderCare which returns
-    //  MemberResponse.SeniorsUnderCare having field seniors:List<SeniorProfileOutput>
-    // TODO: diverse SeniorProfileOutput Context(by member of care or admin or self)
 }

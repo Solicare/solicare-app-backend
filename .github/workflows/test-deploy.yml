@@ -31,7 +31,8 @@ jobs:
               transient_environment: true,
               production_environment: false,
               auto_inactive: true,
-              required_contexts: []
+              required_contexts: [],
+              auto_merge: false // prevent auto-merging master into PR ref
             });
             core.setOutput('deployment_id', deployment.data.id)
       - name: Cache Gradle dependencies
