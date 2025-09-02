@@ -53,6 +53,7 @@ jobs:
           echo "spring.datasource.url=$SPRING_DATASOURCE_URL" > src/main/resources/configs/database/mariadb.properties
           echo "spring.datasource.username=$SPRING_DATASOURCE_USERNAME" >> src/main/resources/configs/database/mariadb.properties
           echo "spring.datasource.password=$SPRING_DATASOURCE_PASSWORD" >> src/main/resources/configs/database/mariadb.properties
+          echo "openapi.api.serviceKey=$OPENAPI_API_SERVICE_KEY" > src/main/resources/configs/external/openapi.properties
         env:
           JWT_SECRETKEY: ${{ secrets.JWT_SECRET }}
           SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
