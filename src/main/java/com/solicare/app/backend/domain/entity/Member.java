@@ -31,10 +31,10 @@ public class Member {
     private String phoneNumber;
 
     @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<PushDevice> pushDevices = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<CareRelation> careRelations = new ArrayList<>();
+    private List<Care> cares = new ArrayList<>();
 }

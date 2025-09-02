@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class CareRelation {
+public class Care {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String uuid;

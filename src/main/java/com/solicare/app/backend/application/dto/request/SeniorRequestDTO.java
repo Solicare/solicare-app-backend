@@ -68,4 +68,19 @@ public final class SeniorRequestDTO {
                             requiredMode = Schema.RequiredMode.REQUIRED)
                     @NotBlank(message = "비밀번호는 필수입니다.")
                     String password) {}
+
+    @Schema(name = "SeniorRequestLinkMember", description = "모니터링 보호자 연결 요청 DTO")
+    public record LinkMember(
+            @Schema(
+                            description = "모니터링 보호자 이메일",
+                            example = "address@test.com",
+                            requiredMode = Schema.RequiredMode.REQUIRED)
+                    @NotBlank(message = "모니터링 보호자의 이메일은 필수입니다.")
+                    String email,
+            @Schema(
+                            description = "모니터링 보호자 PW",
+                            example = "securePassword123!",
+                            requiredMode = Schema.RequiredMode.REQUIRED)
+                    @NotBlank(message = "모니터링 보호자의 PW는 필수입니다.")
+                    String password) {}
 }

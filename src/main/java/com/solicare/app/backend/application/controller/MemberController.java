@@ -1,6 +1,5 @@
 package com.solicare.app.backend.application.controller;
 
-import com.solicare.app.backend.application.dto.request.CareRequestDTO;
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
@@ -86,7 +85,7 @@ public class MemberController {
                 description = "자격 증명 실패")
     })
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER') or hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('MEMBER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Object>> getProfile(
             @NonNull Authentication authentication, @RequestParam("uuid") String uuid) {
         boolean isAdmin =
@@ -105,7 +104,7 @@ public class MemberController {
     @Operation(
             summary = "모니터링 대상 목록 조회",
             description = "특정 회원의 UUID로, 해당 회원이 모니터링하는 시니어(모니터링 대상) 목록을 조회합니다.")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER') or hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('MEMBER') or hasRole('ADMIN')")
     @GetMapping("/{memberUuid}/seniors")
     public ResponseEntity<ApiResponse<Object>> getCareSeniors(
             @PathVariable String memberUuid, @NonNull Authentication authentication) {
@@ -125,11 +124,11 @@ public class MemberController {
 
     @Operation(summary = "모니터링 대상 추가", description = "특정 회원의 UUID로, 해당 회원의 모니터링 대상(시니어)을 추가합니다.")
     @PostMapping("/{memberUuid}/seniors")
-    @PreAuthorize("hasAuthority('ROLE_MEMBER')")
+    @PreAuthorize("hasRole('MEMBER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Object>> addCareSenior(
             @PathVariable String memberUuid,
             @NonNull Authentication authentication,
-            @RequestBody @Valid CareRequestDTO.LinkSenior requestDto) {
+            @RequestBody @Valid MemberRequestDTO.LinkSenior requestDto) {
         boolean isAdmin =
                 authentication.getAuthorities().stream()
                         .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));

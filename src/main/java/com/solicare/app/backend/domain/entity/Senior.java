@@ -47,5 +47,5 @@ public class Senior {
 
     @Builder.Default
     @OneToMany(mappedBy = "senior", cascade = CascadeType.ALL)
-    private List<CareRelation> careRelations = new ArrayList<>();
+    private List<Care> cares = new ArrayList<>();
 }
