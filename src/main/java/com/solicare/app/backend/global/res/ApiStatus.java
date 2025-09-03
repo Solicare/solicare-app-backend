@@ -24,7 +24,8 @@ public enum ApiStatus {
     _INVALID_FIELD(HttpStatus.BAD_REQUEST, "COMMON400A", "유효성 검증 실패"),
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
-    _NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON404", "요청한 리소스를 찾을 수 없습니다.");
+    _NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON404", "요청한 리소스를 찾을 수 없습니다."),
+    _NOT_IMPLEMENTED(HttpStatus.NOT_IMPLEMENTED, "COMMON501", "지원하지 않는 기능입니다.");
 
     /* ---------- 필드 ---------- */
     private final HttpStatus httpStatus;

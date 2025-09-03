@@ -47,5 +47,9 @@ public class Senior {
 
     @Builder.Default
     @OneToMany(mappedBy = "senior", cascade = CascadeType.ALL)
+    private List<Device> devices = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "senior", cascade = CascadeType.ALL)
     private List<Care> cares = new ArrayList<>();
 }

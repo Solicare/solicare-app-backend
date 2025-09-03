@@ -1,6 +1,6 @@
 package com.solicare.app.backend.domain.entity;
 
-import com.solicare.app.backend.domain.enums.PushDeviceType;
+import com.solicare.app.backend.domain.enums.Push;
 
 import jakarta.persistence.*;
 
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class PushDevice {
+public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String uuid;
@@ -22,7 +22,7 @@ public class PushDevice {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PushDeviceType type;
+    private Push type;
 
     @Column(nullable = false, length = 2048)
     private String token;
@@ -48,8 +48,13 @@ public class PushDevice {
     @JoinColumn(name = "member_uuid")
     private Member member;
 
-    public PushDevice link(Member member) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "senior_uuid")
+    private Senior senior;
+
+    public Device link(Member member) {
         this.member = member;
+        this.senior = null;
         this.touch();
         return this;
     }
@@ -58,20 +63,22 @@ public class PushDevice {
         this.lastSeenAt = LocalDateTime.now();
     }
 
-    public PushDevice unlink() {
+    public Device link(Senior senior) {
         this.member = null;
+        this.senior = senior;
         this.touch();
         return this;
     }
 
-    public PushDevice setEnabled(boolean enabled) {
+    public Device unlink() {
+        this.member = null;
+        this.senior = null;
+        this.touch();
+        return this;
+    }
+
+    public Device setEnabled(boolean enabled) {
         this.enabled = enabled;
-        return this;
-    }
-
-    public PushDevice update(String token) {
-        this.token = token;
-        this.touch();
         return this;
     }
 }

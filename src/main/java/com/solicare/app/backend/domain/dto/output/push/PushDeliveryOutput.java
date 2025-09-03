@@ -11,17 +11,16 @@ import java.util.List;
 @Getter
 @RequiredArgsConstructor(staticName = "of")
 @AllArgsConstructor(staticName = "of")
-public class PushSendOutput<DetailClassType extends PushSendOutput.Detail>
-        implements OperationOutput {
-    private final List<DetailClassType> details;
+public class PushDeliveryOutput implements OperationOutput {
+    private final List<SendOutputDetail> details;
     private Status status;
 
-    public PushSendOutput<DetailClassType> setStatusByDetails() {
+    public PushDeliveryOutput setStatusByDetails() {
         int targetCount = getTargetCount();
         int successCount = getSuccessCount();
 
         if (targetCount == 0) {
-            status = Status.NON_SENT;
+            status = Status.UNAVAILABLE;
         } else if (successCount == targetCount) {
             status = Status.ALL_SENT;
         } else if (successCount > 0) {
@@ -37,7 +36,9 @@ public class PushSendOutput<DetailClassType extends PushSendOutput.Detail>
     }
 
     public int getSuccessCount() {
-        return (details == null) ? 0 : details.stream().filter(Detail::isSuccess).toList().size();
+        return (details == null)
+                ? 0
+                : details.stream().filter(SendOutputDetail::isSuccess).toList().size();
     }
 
     @Override
@@ -46,15 +47,10 @@ public class PushSendOutput<DetailClassType extends PushSendOutput.Detail>
     }
 
     public enum Status {
-        MEMBER_NOT_FOUND,
+        UNAVAILABLE,
+        NOT_FOUND,
         ALL_SENT,
         PARTIALLY_SENT,
         NON_SENT
-    }
-
-    public interface Detail {
-        boolean isSuccess();
-
-        Exception getException();
     }
 }

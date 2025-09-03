@@ -1,0 +1,18 @@
+package com.solicare.app.backend.application.dto.res;
+
+import com.solicare.app.backend.domain.enums.Push;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class DeviceResponseDTO {
+    @Schema(name = "DeviceInfoResponse", description = "디바이스 정보 응답 DTO")
+    public record Info(
+            @Schema(description = "디바이스 UUID") String uuid,
+            @Schema(description = "디바이스 활성화 여부") boolean enabled,
+            @Schema(description = "디바이스 푸시 타입") Push type,
+            @Schema(description = "디바이스 푸시 토큰") String token) {}
+}
