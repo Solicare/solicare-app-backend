@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class MemberRequestDTO {
+    @Schema(name = "MemberRequestJoin", description = "멤버 회원가입 요청 DTO")
     public record Join(
             @Schema(
                             description = "회원 이름",
@@ -34,7 +35,7 @@ public final class MemberRequestDTO {
                     @NotBlank(message = "비밀번호는 필수입니다.")
                     String password) {}
 
-    @Schema(name = "MemberRequestLogin", description = "로그인 요청 DTO")
+    @Schema(name = "MemberRequestLogin", description = "멤버 로그인 요청 DTO")
     public record Login(
             @Schema(
                             description = "이메일",
@@ -47,5 +48,20 @@ public final class MemberRequestDTO {
                             example = "securePassword123!",
                             requiredMode = Schema.RequiredMode.REQUIRED)
                     @NotBlank(message = "비밀번호는 필수입니다.")
+                    String password) {}
+
+    @Schema(name = "MemberRequestLinkSenior", description = "모니터링 대상 연결 요청 DTO")
+    public record LinkSenior(
+            @Schema(
+                            description = "모니터링 대상의 등록 ID",
+                            example = "senioruser",
+                            requiredMode = Schema.RequiredMode.REQUIRED)
+                    @NotBlank(message = "모니터링 대상의 등록 ID는 필수입니다.")
+                    String userId,
+            @Schema(
+                            description = "모니터링 대상의 등록 PW",
+                            example = "password1234",
+                            requiredMode = Schema.RequiredMode.REQUIRED)
+                    @NotBlank(message = "모니터링 대상의 등록 PW는 필수입니다.")
                     String password) {}
 }

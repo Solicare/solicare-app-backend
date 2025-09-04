@@ -1,7 +1,7 @@
 package com.solicare.app.backend.global.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.solicare.app.backend.domain.dto.output.auth.JwtValidateOutput;
+import com.solicare.app.backend.domain.dto.auth.JwtValidateResult;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
@@ -47,39 +47,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String header = request.getHeader("Authorization");
 
-        log.info(
-                "🔍 JWT Filter - Request URI: {}, Authorization Header: {}",
-                request.getRequestURI(),
-                header != null
-                        ? "Present (" + header.substring(0, Math.min(20, header.length())) + "...)"
-                        : "null");
-
         if (header == null) {
-            log.info("❌ No Authorization header, passing to next filter");
             chain.doFilter(request, response);
             return;
         }
 
         if (!header.startsWith("Bearer ")) {
-            log.info("❌ Authorization header does not start with Bearer: {}", header);
             sendErrorResponse(response, "Authorization Header is not Bearer format");
             return;
         }
 
         String token = header.substring(7).trim();
-        log.info("🔑 Extracted token length: {}", token.length());
 
         if (token.isEmpty()) {
-            log.info("❌ Token is empty, passing to next filter");
             chain.doFilter(request, response);
             return;
         }
 
-        JwtValidateOutput output = jwtTokenProvider.validateToken(token);
-        log.info("✅ Token validation status: {}", output.getStatus());
+        JwtValidateResult output = jwtTokenProvider.validateToken(token);
 
-        if (output.getStatus() != JwtValidateOutput.Status.VALID) {
-            log.info("❌ Token validation failed: {}", output.getStatus());
+        if (output.getStatus() != JwtValidateResult.Status.VALID) {
             sendJwtValidateErrorResponse(response, output);
             return;
         }
@@ -98,20 +85,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         log.info("🔑 Roles from token: {}", roles);
 
         if (roles.isEmpty()) {
-            log.info("❌ Role claim is missing in token");
             sendErrorResponse(response, "Role claim is missing in token.");
             return;
         }
 
         List<GrantedAuthority> authorities = buildAuthoritiesFromRoles(claims.getSubject(), roles);
-        log.info(
-                "🛡️ Built authorities: {}",
-                authorities.stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .collect(Collectors.toList()));
 
         if (authorities.isEmpty()) {
-            log.info("❌ No valid authorities found for user");
             sendErrorResponse(response, "No valid authorities found for user.");
             return;
         }
@@ -129,17 +109,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private void sendJwtValidateErrorResponse(
-            HttpServletResponse response, JwtValidateOutput output) throws IOException {
+            HttpServletResponse response, JwtValidateResult output) throws IOException {
         String reason;
         switch (output.getStatus()) {
-            case JwtValidateOutput.Status.INVALID -> {
+            case JwtValidateResult.Status.INVALID -> {
                 reason = "Invalid token";
                 Exception e = output.getException();
                 if (e != null) {
                     reason += ": " + e.getMessage();
                 }
             }
-            case JwtValidateOutput.Status.EXPIRED -> reason = "Expired token";
+            case JwtValidateResult.Status.EXPIRED -> reason = "Expired token";
             default -> reason = "Unknown token error";
         }
         sendErrorResponse(response, reason);

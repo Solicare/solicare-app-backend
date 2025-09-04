@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -52,6 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth ->
                                 auth.requestMatchers(
+                                                HttpMethod.GET,
                                                 "/",
                                                 "/favicon.ico",
                                                 "/robots.txt",
@@ -61,13 +63,18 @@ public class SecurityConfig {
                                                 "/actuator/**",
                                                 "/v3/api-docs/**",
                                                 "/swagger-ui/**",
-                                                "/swagger-resources/**",
+                                                "/swagger-resources/**")
+                                        .permitAll()
+                                        .requestMatchers(
+                                                HttpMethod.POST,
                                                 "/api/member/join",
                                                 "/api/member/login",
                                                 "/api/senior/join",
-                                                "/api/senior/login",
-                                                "/api/fcm/register/{token}",
-                                                "/api/fcm/unregister/{token}")
+                                                "/api/senior/login")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.PUT, "/api/firebase/fcm/*")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.DELETE, "/api/firebase/fcm/*")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())

@@ -1,11 +1,13 @@
-package com.solicare.app.backend.domain.dto.output.push;
+package com.solicare.app.backend.domain.dto.push;
+
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class FcmSendOutputDetail implements PushSendOutput.Detail {
+public class PushDeliveryResult implements ServiceResult {
     private Status status;
     private Exception exception;
 

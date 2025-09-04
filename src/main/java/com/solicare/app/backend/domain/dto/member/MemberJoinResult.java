@@ -1,14 +1,14 @@
-package com.solicare.app.backend.domain.dto.output.member;
+package com.solicare.app.backend.domain.dto.member;
 
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
-import com.solicare.app.backend.domain.dto.output.OperationOutput;
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class MemberJoinOutput implements OperationOutput {
+public class MemberJoinResult implements ServiceResult {
     private Status status;
     private MemberResponseDTO.Join response;
     private Exception exception;

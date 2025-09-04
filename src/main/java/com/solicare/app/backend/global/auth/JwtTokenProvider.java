@@ -1,6 +1,6 @@
 package com.solicare.app.backend.global.auth;
 
-import com.solicare.app.backend.domain.dto.output.auth.JwtValidateOutput;
+import com.solicare.app.backend.domain.dto.auth.JwtValidateResult;
 import com.solicare.app.backend.domain.enums.Role;
 
 import io.jsonwebtoken.Claims;
@@ -44,15 +44,15 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public JwtValidateOutput validateToken(String token) {
+    public JwtValidateResult validateToken(String token) {
         try {
             Jws<Claims> jwsClaims = parseToken(token);
 
             if (jwsClaims.getBody().getExpiration().before(new Date()))
-                return JwtValidateOutput.of(JwtValidateOutput.Status.EXPIRED, null, null);
-            return JwtValidateOutput.of(JwtValidateOutput.Status.VALID, jwsClaims, null);
+                return JwtValidateResult.of(JwtValidateResult.Status.EXPIRED, null, null);
+            return JwtValidateResult.of(JwtValidateResult.Status.VALID, jwsClaims, null);
         } catch (Exception e) {
-            return JwtValidateOutput.of(JwtValidateOutput.Status.INVALID, null, e);
+            return JwtValidateResult.of(JwtValidateResult.Status.INVALID, null, e);
         }
     }
 
