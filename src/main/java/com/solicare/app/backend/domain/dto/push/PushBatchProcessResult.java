@@ -1,6 +1,6 @@
-package com.solicare.app.backend.domain.dto.output.push;
+package com.solicare.app.backend.domain.dto.push;
 
-import com.solicare.app.backend.domain.dto.output.OperationOutput;
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,11 +11,11 @@ import java.util.List;
 @Getter
 @RequiredArgsConstructor(staticName = "of")
 @AllArgsConstructor(staticName = "of")
-public class PushDeliveryOutput implements OperationOutput {
-    private final List<SendOutputDetail> details;
+public class PushBatchProcessResult implements ServiceResult {
+    private final List<PushDeliveryResult> details;
     private Status status;
 
-    public PushDeliveryOutput setStatusByDetails() {
+    public PushBatchProcessResult setStatusByDetails() {
         int targetCount = getTargetCount();
         int successCount = getSuccessCount();
 
@@ -38,7 +38,7 @@ public class PushDeliveryOutput implements OperationOutput {
     public int getSuccessCount() {
         return (details == null)
                 ? 0
-                : details.stream().filter(SendOutputDetail::isSuccess).toList().size();
+                : details.stream().filter(ServiceResult::isSuccess).toList().size();
     }
 
     @Override

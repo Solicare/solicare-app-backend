@@ -4,14 +4,14 @@ import com.solicare.app.backend.application.dto.request.PushRequestDTO;
 import com.solicare.app.backend.application.dto.request.SeniorRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
-import com.solicare.app.backend.domain.dto.output.care.CareLinkOutput;
-import com.solicare.app.backend.domain.dto.output.care.CareQueryOutput;
-import com.solicare.app.backend.domain.dto.output.device.DeviceManageOutput;
-import com.solicare.app.backend.domain.dto.output.device.DeviceQueryOutput;
-import com.solicare.app.backend.domain.dto.output.push.PushDeliveryOutput;
-import com.solicare.app.backend.domain.dto.output.senior.SeniorCreateOutput;
-import com.solicare.app.backend.domain.dto.output.senior.SeniorLoginOutput;
-import com.solicare.app.backend.domain.dto.output.senior.SeniorProfileOutput;
+import com.solicare.app.backend.domain.dto.care.CareLinkResult;
+import com.solicare.app.backend.domain.dto.care.CareQueryResult;
+import com.solicare.app.backend.domain.dto.device.DeviceManageResult;
+import com.solicare.app.backend.domain.dto.device.DeviceQueryResult;
+import com.solicare.app.backend.domain.dto.push.PushBatchProcessResult;
+import com.solicare.app.backend.domain.dto.senior.SeniorCreateResult;
+import com.solicare.app.backend.domain.dto.senior.SeniorLoginResult;
+import com.solicare.app.backend.domain.dto.senior.SeniorProfileResult;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.service.CareService;
 import com.solicare.app.backend.domain.service.DeviceService;
@@ -55,10 +55,10 @@ public class SeniorController {
                 responseCode = "409",
                 description = "이미 존재하는 모니터링 대상 사용자 ID")
     })
-    @PostMapping("/join")
-    public ResponseEntity<ApiResponse<SeniorCreateOutput>> join(
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<SeniorCreateResult>> seniorCreate(
             @RequestBody @Valid SeniorRequestDTO.Create createRequestDTO) {
-        SeniorCreateOutput result = seniorService.createAndIssueToken(createRequestDTO);
+        SeniorCreateResult result = seniorService.createAndIssueToken(createRequestDTO);
         // TODO: respond with appropriate status based on result not SeniorCreateOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -73,9 +73,9 @@ public class SeniorController {
                 description = "자격 증명 실패")
     })
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<SeniorLoginOutput>> login(
+    public ResponseEntity<ApiResponse<SeniorLoginResult>> seniorLogin(
             @RequestBody @Valid SeniorRequestDTO.Login loginRequestDTO) {
-        SeniorLoginOutput result = seniorService.loginAndIssueToken(loginRequestDTO);
+        SeniorLoginResult result = seniorService.loginAndIssueToken(loginRequestDTO);
         // TODO: respond with appropriate status based on result not SeniorLoginOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -91,7 +91,7 @@ public class SeniorController {
     })
     @GetMapping("/{seniorUuid}")
     @PreAuthorize("hasAnyRole('SENIOR', 'ADMIN')")
-    public ResponseEntity<ApiResponse<Object>> getProfile(
+    public ResponseEntity<ApiResponse<Object>> getSeniorProfile(
             Authentication authentication, @PathVariable String seniorUuid) {
         boolean isAdmin =
                 authentication.getAuthorities().stream()
@@ -99,7 +99,7 @@ public class SeniorController {
         if (!isAdmin && !authentication.getName().equals(seniorUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 정보만 조회 가능합니다.");
         }
-        SeniorProfileOutput result = seniorService.getProfile(seniorUuid);
+        SeniorProfileResult result = seniorService.getProfile(seniorUuid);
         // TODO: respond with appropriate status based on result not SeniorProfileOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -118,7 +118,7 @@ public class SeniorController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 보호자 목록을 조회할 수 있습니다.");
         }
-        CareQueryOutput<MemberResponseDTO.Profile> result =
+        CareQueryResult<MemberResponseDTO.Profile> result =
                 careService.queryMemberBySenior(seniorUuid);
         // TODO: respond with appropriate status based on result not
         //  CareQueryOutput<MemberResponseDTO.Profile>
@@ -138,7 +138,7 @@ public class SeniorController {
         if (!isAdmin && !authentication.getName().equals(seniorUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인만 자신의 보호자를 추가할 수 있습니다");
         }
-        CareLinkOutput<SeniorResponseDTO.Profile> result =
+        CareLinkResult<SeniorResponseDTO.Profile> result =
                 careService.linkMemberToSenior(seniorUuid, requestDto);
         if (!result.isSuccess()) {
             ApiStatus status =
@@ -186,7 +186,7 @@ public class SeniorController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스 목록을 조회할 수 있습니다");
         }
-        DeviceQueryOutput result = deviceService.getDevices(Role.SENIOR, seniorUuid);
+        DeviceQueryResult result = deviceService.getDevices(Role.SENIOR, seniorUuid);
         // TODO: respond with appropriate status based on result not DeviceQueryOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -194,7 +194,7 @@ public class SeniorController {
     @Operation(summary = "시니어 디바이스 등록", description = "특정 시니어의 UUID로, 디바이스를 추가(연결)합니다.")
     @PutMapping("/{seniorUuid}/devices/{deviceUuid}")
     @PreAuthorize("hasAnyRole('SENIOR', 'ADMIN')")
-    public ResponseEntity<ApiResponse<Object>> linkDevice(
+    public ResponseEntity<ApiResponse<Object>> linkDeviceToSenior(
             Authentication authentication,
             @PathVariable String seniorUuid,
             @PathVariable String deviceUuid) {
@@ -204,7 +204,7 @@ public class SeniorController {
         if (!isAdmin && !authentication.getName().equals(seniorUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인만 자신의 디바이스를 추가할 수 있습니다");
         }
-        DeviceManageOutput result = deviceService.link(deviceUuid, Role.MEMBER, seniorUuid);
+        DeviceManageResult result = deviceService.link(deviceUuid, Role.MEMBER, seniorUuid);
         // TODO: respond with appropriate status based on result not DeviceManageOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -212,7 +212,7 @@ public class SeniorController {
     @Operation(summary = "시니어 푸시 발송", description = "특정 시니어의 UUID로, 해당 회원의 모든 디바이스에 푸시 알림을 발송합니다.")
     @PostMapping("/{seniorUuid}/push")
     @PreAuthorize("hasAnyRole('SENIOR', 'ADMIN')")
-    public ResponseEntity<ApiResponse<Object>> push(
+    public ResponseEntity<ApiResponse<Object>> pushToSenior(
             Authentication authentication,
             @PathVariable String seniorUuid,
             @Valid @RequestBody PushRequestDTO.Send requestDTO) {
@@ -223,7 +223,7 @@ public class SeniorController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스에 푸시를 보낼 수 있습니다");
         }
-        PushDeliveryOutput result =
+        PushBatchProcessResult result =
                 pushService.push(Role.SENIOR, seniorUuid, requestDTO.title(), requestDTO.body());
         // TODO: respond with appropriate status based on result not PushDeliveryOutput
         return apiResponseFactory.onSuccess(result);

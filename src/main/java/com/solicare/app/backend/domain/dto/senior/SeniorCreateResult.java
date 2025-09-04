@@ -1,15 +1,15 @@
 // SeniorJoinOutput.java
-package com.solicare.app.backend.domain.dto.output.senior;
+package com.solicare.app.backend.domain.dto.senior;
 
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
-import com.solicare.app.backend.domain.dto.output.OperationOutput;
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class SeniorCreateOutput implements OperationOutput {
+public class SeniorCreateResult implements ServiceResult {
     private Status status;
     private SeniorResponseDTO.Create response;
     private Exception exception;

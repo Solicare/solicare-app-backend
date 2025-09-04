@@ -1,14 +1,14 @@
-package com.solicare.app.backend.domain.dto.output.device;
+package com.solicare.app.backend.domain.dto.device;
 
 import com.solicare.app.backend.application.dto.res.DeviceResponseDTO;
-import com.solicare.app.backend.domain.dto.output.OperationOutput;
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class DeviceManageOutput implements OperationOutput {
+public class DeviceManageResult implements ServiceResult {
     Status status;
     DeviceResponseDTO.Info response;
     Exception exception;

@@ -1,13 +1,13 @@
-package com.solicare.app.backend.domain.dto.output.care;
+package com.solicare.app.backend.domain.dto.care;
 
-import com.solicare.app.backend.domain.dto.output.OperationOutput;
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class CareLinkOutput<ProfileResponse> implements OperationOutput {
+public class CareLinkResult<ProfileResponse> implements ServiceResult {
     private Status status;
     private ProfileResponse response;
     private Exception exception;

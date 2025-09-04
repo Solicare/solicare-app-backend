@@ -1,8 +1,8 @@
 package com.solicare.app.backend.domain.service;
 
 import com.solicare.app.backend.application.dto.res.DeviceResponseDTO;
-import com.solicare.app.backend.domain.dto.output.push.PushDeliveryOutput;
-import com.solicare.app.backend.domain.dto.output.push.SendOutputDetail;
+import com.solicare.app.backend.domain.dto.push.PushBatchProcessResult;
+import com.solicare.app.backend.domain.dto.push.PushDeliveryResult;
 import com.solicare.app.backend.domain.enums.Push;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
@@ -26,11 +26,11 @@ public class PushService {
     private final MemberRepository memberRepository;
     private final SeniorRepository seniorRepository;
 
-    public PushDeliveryOutput push(Role role, String uuid, String title, String body) {
+    public PushBatchProcessResult push(Role role, String uuid, String title, String body) {
         if (!existsByRoleAndUuid(role, uuid)) {
-            return PushDeliveryOutput.of(null, PushDeliveryOutput.Status.NOT_FOUND);
+            return PushBatchProcessResult.of(null, PushBatchProcessResult.Status.NOT_FOUND);
         }
-        List<SendOutputDetail> sendOutputDetailList =
+        List<PushDeliveryResult> PushDeliveryResultList =
                 deviceService.getDevices(role, uuid).getResponse().stream()
                         .filter(DeviceResponseDTO.Info::enabled)
                         .map(
@@ -39,13 +39,13 @@ public class PushService {
                                         return firebaseService.sendMessageTo(
                                                 device.token(), title, body);
                                     }
-                                    return SendOutputDetail.of(
-                                            SendOutputDetail.Status.ERROR,
+                                    return PushDeliveryResult.of(
+                                            PushDeliveryResult.Status.ERROR,
                                             new IllegalArgumentException(
                                                     "Unsupported push type: " + device.type()));
                                 })
                         .toList();
-        return PushDeliveryOutput.of(sendOutputDetailList).setStatusByDetails();
+        return PushBatchProcessResult.of(PushDeliveryResultList).setStatusByDetails();
     }
 
     // TODO: extract this method and remove duplicated code in Service classes

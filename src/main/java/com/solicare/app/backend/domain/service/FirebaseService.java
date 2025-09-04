@@ -4,7 +4,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import com.solicare.app.backend.domain.dto.output.push.SendOutputDetail;
+import com.solicare.app.backend.domain.dto.push.PushDeliveryResult;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class FirebaseService {
     private final FirebaseMessaging firebaseMessaging;
 
-    public SendOutputDetail sendMessageTo(String fcmToken, String title, String body) {
+    public PushDeliveryResult sendMessageTo(String fcmToken, String title, String body) {
         Message message =
                 Message.builder()
                         .setToken(fcmToken)
@@ -26,16 +26,16 @@ public class FirebaseService {
 
         try {
             firebaseMessaging.send(message);
-            return SendOutputDetail.of(SendOutputDetail.Status.SENT, null);
+            return PushDeliveryResult.of(PushDeliveryResult.Status.SENT, null);
         } catch (Exception e) {
             if (e instanceof FirebaseMessagingException fcmEx) {
-                return SendOutputDetail.of(
-                        SendOutputDetail.Status.ERROR,
+                return PushDeliveryResult.of(
+                        PushDeliveryResult.Status.ERROR,
                         new RuntimeException(
                                 "FCM Error: " + fcmEx.getErrorCode() + " - " + fcmEx.getMessage()));
             } else {
-                return SendOutputDetail.of(
-                        SendOutputDetail.Status.ERROR, new RuntimeException(e.getMessage()));
+                return PushDeliveryResult.of(
+                        PushDeliveryResult.Status.ERROR, new RuntimeException(e.getMessage()));
             }
         }
     }

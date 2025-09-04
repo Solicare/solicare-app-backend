@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class PushRequestDTO {
+    @Schema(name = "PushRequestSend", description = "푸시 메시지 발송 요청 DTO")
     public record Send(
             @Schema(
                             description = "알림 제목",

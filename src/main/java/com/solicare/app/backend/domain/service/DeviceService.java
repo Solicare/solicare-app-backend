@@ -2,8 +2,8 @@ package com.solicare.app.backend.domain.service;
 
 import com.solicare.app.backend.application.dto.res.DeviceResponseDTO;
 import com.solicare.app.backend.application.mapper.DeviceMapper;
-import com.solicare.app.backend.domain.dto.output.device.DeviceManageOutput;
-import com.solicare.app.backend.domain.dto.output.device.DeviceQueryOutput;
+import com.solicare.app.backend.domain.dto.device.DeviceManageResult;
+import com.solicare.app.backend.domain.dto.device.DeviceQueryResult;
 import com.solicare.app.backend.domain.entity.Device;
 import com.solicare.app.backend.domain.entity.Member;
 import com.solicare.app.backend.domain.entity.Senior;
@@ -35,19 +35,19 @@ public class DeviceService {
                         device -> device.type() == pushType && device.token().equals(deviceToken));
     }
 
-    public DeviceQueryOutput getDevices(Role role, String uuid) {
+    public DeviceQueryResult getDevices(Role role, String uuid) {
         switch (role) {
             case MEMBER -> {
-                return DeviceQueryOutput.of(
-                        DeviceQueryOutput.Status.SUCCESS,
+                return DeviceQueryResult.of(
+                        DeviceQueryResult.Status.SUCCESS,
                         deviceRepository.findByMember_Uuid(uuid).stream()
                                 .map(deviceMapper::from)
                                 .collect(Collectors.toList()),
                         null);
             }
             case SENIOR -> {
-                return DeviceQueryOutput.of(
-                        DeviceQueryOutput.Status.SUCCESS,
+                return DeviceQueryResult.of(
+                        DeviceQueryResult.Status.SUCCESS,
                         deviceRepository.findBySenior_Uuid(uuid).stream()
                                 .map(deviceMapper::from)
                                 .collect(Collectors.toList()),
@@ -57,17 +57,17 @@ public class DeviceService {
         }
     }
 
-    public DeviceManageOutput create(Push type, String token) {
+    public DeviceManageResult create(Push type, String token) {
         try {
             Device device = deviceRepository.findByTypeAndToken(type, token).orElse(null);
             if (device != null) {
                 if (!device.isEnabled()) {
                     deviceRepository.save(device.setEnabled(true));
-                    return DeviceManageOutput.of(
-                            DeviceManageOutput.Status.ENABLED, deviceMapper.from(device), null);
+                    return DeviceManageResult.of(
+                            DeviceManageResult.Status.ENABLED, deviceMapper.from(device), null);
                 }
-                return DeviceManageOutput.of(
-                        DeviceManageOutput.Status.ALREADY_EXISTS, deviceMapper.from(device), null);
+                return DeviceManageResult.of(
+                        DeviceManageResult.Status.ALREADY_EXISTS, deviceMapper.from(device), null);
             }
 
             DeviceResponseDTO.Info info =
@@ -78,26 +78,26 @@ public class DeviceService {
                                             .token(token)
                                             .enabled(true)
                                             .build()));
-            return DeviceManageOutput.of(DeviceManageOutput.Status.CREATED, info, null);
+            return DeviceManageResult.of(DeviceManageResult.Status.CREATED, info, null);
         } catch (Exception e) {
-            return DeviceManageOutput.of(DeviceManageOutput.Status.ERROR, null, e);
+            return DeviceManageResult.of(DeviceManageResult.Status.ERROR, null, e);
         }
     }
 
-    public DeviceManageOutput delete(Push type, String token) {
+    public DeviceManageResult delete(Push type, String token) {
         try {
             if (!deviceRepository.existsByTypeAndToken(type, token)) {
-                return DeviceManageOutput.of(
-                        DeviceManageOutput.Status.DEVICE_NOT_FOUND, null, null);
+                return DeviceManageResult.of(
+                        DeviceManageResult.Status.DEVICE_NOT_FOUND, null, null);
             }
             deviceRepository.deleteByTypeAndToken(type, token);
-            return DeviceManageOutput.of(DeviceManageOutput.Status.DELETED, null, null);
+            return DeviceManageResult.of(DeviceManageResult.Status.DELETED, null, null);
         } catch (Exception e) {
-            return DeviceManageOutput.of(DeviceManageOutput.Status.ERROR, null, e);
+            return DeviceManageResult.of(DeviceManageResult.Status.ERROR, null, e);
         }
     }
 
-    public DeviceManageOutput link(String deviceUuid, Role role, String uuid) {
+    public DeviceManageResult link(String deviceUuid, Role role, String uuid) {
         try {
             Device device =
                     deviceRepository
@@ -122,34 +122,34 @@ public class DeviceService {
                 }
                 default -> throw new IllegalArgumentException("Invalid role: " + role);
             }
-            return DeviceManageOutput.of(
-                    DeviceManageOutput.Status.LINKED,
+            return DeviceManageResult.of(
+                    DeviceManageResult.Status.LINKED,
                     deviceMapper.from(deviceRepository.save(device).setEnabled(true)),
                     null);
         } catch (Exception e) {
             if (e instanceof IllegalArgumentException) {
-                return DeviceManageOutput.of(
-                        DeviceManageOutput.Status.valueOf(e.getMessage()), null, e);
+                return DeviceManageResult.of(
+                        DeviceManageResult.Status.valueOf(e.getMessage()), null, e);
             }
-            return DeviceManageOutput.of(DeviceManageOutput.Status.ERROR, null, e);
+            return DeviceManageResult.of(DeviceManageResult.Status.ERROR, null, e);
         }
     }
 
-    public DeviceManageOutput unlink(String deviceUuid) {
+    public DeviceManageResult unlink(String deviceUuid) {
         try {
             Device device =
                     deviceRepository
                             .findByUuid(deviceUuid)
                             .orElseThrow(() -> new IllegalArgumentException("DEVICE_NOT_FOUND"));
             deviceRepository.save(device.unlink());
-            return DeviceManageOutput.of(
-                    DeviceManageOutput.Status.UNLINKED, deviceMapper.from(device), null);
+            return DeviceManageResult.of(
+                    DeviceManageResult.Status.UNLINKED, deviceMapper.from(device), null);
         } catch (Exception e) {
             if (e instanceof IllegalArgumentException) {
-                return DeviceManageOutput.of(
-                        DeviceManageOutput.Status.valueOf(e.getMessage()), null, e);
+                return DeviceManageResult.of(
+                        DeviceManageResult.Status.valueOf(e.getMessage()), null, e);
             }
-            return DeviceManageOutput.of(DeviceManageOutput.Status.ERROR, null, e);
+            return DeviceManageResult.of(DeviceManageResult.Status.ERROR, null, e);
         }
     }
 

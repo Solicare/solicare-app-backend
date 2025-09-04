@@ -1,6 +1,7 @@
-package com.solicare.app.backend.domain.dto.output.care;
+package com.solicare.app.backend.domain.dto.device;
 
-import com.solicare.app.backend.domain.dto.output.OperationOutput;
+import com.solicare.app.backend.application.dto.res.DeviceResponseDTO;
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,10 +10,10 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class CareQueryOutput<ProfileResponse> implements OperationOutput {
-    private Status status;
-    private List<ProfileResponse> response;
-    private Exception exception;
+public class DeviceQueryResult implements ServiceResult {
+    Status status;
+    List<DeviceResponseDTO.Info> response;
+    Exception exception;
 
     @Override
     public boolean isSuccess() {

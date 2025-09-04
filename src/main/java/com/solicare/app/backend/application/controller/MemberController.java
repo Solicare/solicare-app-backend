@@ -4,12 +4,14 @@ import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.request.PushRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
-import com.solicare.app.backend.domain.dto.output.care.CareLinkOutput;
-import com.solicare.app.backend.domain.dto.output.care.CareQueryOutput;
-import com.solicare.app.backend.domain.dto.output.device.DeviceManageOutput;
-import com.solicare.app.backend.domain.dto.output.device.DeviceQueryOutput;
-import com.solicare.app.backend.domain.dto.output.member.*;
-import com.solicare.app.backend.domain.dto.output.push.PushDeliveryOutput;
+import com.solicare.app.backend.domain.dto.care.CareLinkResult;
+import com.solicare.app.backend.domain.dto.care.CareQueryResult;
+import com.solicare.app.backend.domain.dto.device.DeviceManageResult;
+import com.solicare.app.backend.domain.dto.device.DeviceQueryResult;
+import com.solicare.app.backend.domain.dto.member.MemberJoinResult;
+import com.solicare.app.backend.domain.dto.member.MemberLoginResult;
+import com.solicare.app.backend.domain.dto.member.MemberProfileResult;
+import com.solicare.app.backend.domain.dto.push.PushBatchProcessResult;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.service.CareService;
 import com.solicare.app.backend.domain.service.DeviceService;
@@ -58,10 +60,10 @@ public class MemberController {
                 description = "중복 회원")
     })
     @PostMapping("/join")
-    public ResponseEntity<ApiResponse<MemberJoinOutput>> join(
+    public ResponseEntity<ApiResponse<MemberJoinResult>> memberJoin(
             @Schema(name = "MemberRequestJoin", description = "회원가입 요청 DTO") @RequestBody @Valid
                     MemberRequestDTO.Join memberJoinRequestDTO) {
-        MemberJoinOutput result = memberService.createAndIssueToken(memberJoinRequestDTO);
+        MemberJoinResult result = memberService.createAndIssueToken(memberJoinRequestDTO);
         // TODO: respond with appropriate status based on result not MemberJoinOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -76,9 +78,9 @@ public class MemberController {
                 description = "자격 증명 실패")
     })
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<MemberLoginOutput>> login(
+    public ResponseEntity<ApiResponse<MemberLoginResult>> memberLogin(
             @RequestBody @Valid MemberRequestDTO.Login memberLoginRequestDTO) {
-        MemberLoginOutput result = memberService.loginAndIssueToken(memberLoginRequestDTO);
+        MemberLoginResult result = memberService.loginAndIssueToken(memberLoginRequestDTO);
         // TODO: respond with appropriate status based on result not MemberLoginOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -94,7 +96,7 @@ public class MemberController {
     })
     @GetMapping("/{memberUuid}")
     @PreAuthorize("hasAnyRole('MEMBER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<Object>> getProfile(
+    public ResponseEntity<ApiResponse<Object>> getMemberProfile(
             Authentication authentication, @PathVariable String memberUuid) {
         boolean isAdmin =
                 authentication.getAuthorities().stream()
@@ -104,7 +106,7 @@ public class MemberController {
         if (!isAdmin && !authentication.getName().equals(memberUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 정보만 조회 가능합니다.");
         }
-        MemberProfileOutput result = memberService.getProfile(memberUuid);
+        MemberProfileResult result = memberService.getProfile(memberUuid);
         // TODO: respond with appropriate status based on result not MemberProfileOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -123,7 +125,7 @@ public class MemberController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 모니터링 대상 목록을 조회할 수 있습니다.");
         }
-        CareQueryOutput<SeniorResponseDTO.Profile> result =
+        CareQueryResult<SeniorResponseDTO.Profile> result =
                 careService.querySeniorByMember(memberUuid);
         // TODO: respond with appropriate status based on result not
         //  CareQueryOutput<SeniorResponseDTO.Profile>
@@ -144,7 +146,7 @@ public class MemberController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 모니터링 대상을 추가할 수 있습니다");
         }
-        CareLinkOutput<MemberResponseDTO.Profile> result =
+        CareLinkResult<MemberResponseDTO.Profile> result =
                 careService.linkSeniorToMember(memberUuid, requestDto);
         if (!result.isSuccess()) {
             ApiStatus status =
@@ -190,7 +192,7 @@ public class MemberController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스 목록을 조회할 수 있습니다");
         }
-        DeviceQueryOutput result = deviceService.getDevices(Role.MEMBER, memberUuid);
+        DeviceQueryResult result = deviceService.getDevices(Role.MEMBER, memberUuid);
         // TODO: respond with appropriate status based on result not DeviceQueryOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -198,7 +200,7 @@ public class MemberController {
     @Operation(summary = "멤버 디바이스 등록", description = "특정 멤버의 UUID로, 디바이스를 추가(연결)합니다.")
     @PutMapping("/{memberUuid}/devices/{deviceUuid}")
     @PreAuthorize("hasAnyRole('MEMBER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<Object>> linkDevice(
+    public ResponseEntity<ApiResponse<Object>> linkDeviceToMember(
             Authentication authentication,
             @PathVariable String memberUuid,
             @PathVariable String deviceUuid) {
@@ -208,7 +210,7 @@ public class MemberController {
         if (!isAdmin && !authentication.getName().equals(memberUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인만 자신의 디바이스를 추가할 수 있습니다");
         }
-        DeviceManageOutput result = deviceService.link(deviceUuid, Role.MEMBER, memberUuid);
+        DeviceManageResult result = deviceService.link(deviceUuid, Role.MEMBER, memberUuid);
         // TODO: respond with appropriate status based on result not DeviceManageOutput
         return apiResponseFactory.onSuccess(result);
     }
@@ -216,7 +218,7 @@ public class MemberController {
     @Operation(summary = "멤버 푸시 발송", description = "특정 멤버의 UUID로, 해당 회원의 모든 디바이스에 푸시 알림을 발송합니다.")
     @PostMapping("/{memberUuid}/push")
     @PreAuthorize("hasAnyRole('MEMBER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<Object>> push(
+    public ResponseEntity<ApiResponse<Object>> pushToMember(
             Authentication authentication,
             @PathVariable String memberUuid,
             @Valid @RequestBody PushRequestDTO.Send requestDTO) {
@@ -227,7 +229,7 @@ public class MemberController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스에 푸시를 보낼 수 있습니다");
         }
-        PushDeliveryOutput result =
+        PushBatchProcessResult result =
                 pushService.push(Role.MEMBER, memberUuid, requestDTO.title(), requestDTO.body());
         // TODO: respond with appropriate status based on result not PushDeliveryOutput
         return apiResponseFactory.onSuccess(result);

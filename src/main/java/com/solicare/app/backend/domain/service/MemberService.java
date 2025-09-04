@@ -3,7 +3,9 @@ package com.solicare.app.backend.domain.service;
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.application.mapper.MemberMapper;
-import com.solicare.app.backend.domain.dto.output.member.*;
+import com.solicare.app.backend.domain.dto.member.MemberJoinResult;
+import com.solicare.app.backend.domain.dto.member.MemberLoginResult;
+import com.solicare.app.backend.domain.dto.member.MemberProfileResult;
 import com.solicare.app.backend.domain.entity.Member;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
@@ -35,15 +37,15 @@ public class MemberService {
      * @param dto 회원 가입 요청 DTO
      * @return 가입 결과 및 토큰 정보
      */
-    public MemberJoinOutput createAndIssueToken(MemberRequestDTO.Join dto) {
+    public MemberJoinResult createAndIssueToken(MemberRequestDTO.Join dto) {
         if (memberRepository.existsByEmail(dto.email())) {
-            return MemberJoinOutput.of(MemberJoinOutput.Status.USER_ALREADY_EXISTS, null, null);
+            return MemberJoinResult.of(MemberJoinResult.Status.USER_ALREADY_EXISTS, null, null);
         }
         Member newMember = memberMapper.toEntity(dto);
         memberRepository.save(newMember);
         String jwtToken = jwtTokenProvider.createToken(List.of(Role.MEMBER), newMember.getUuid());
-        return MemberJoinOutput.of(
-                MemberJoinOutput.Status.SUCCESS, new MemberResponseDTO.Join(jwtToken), null);
+        return MemberJoinResult.of(
+                MemberJoinResult.Status.SUCCESS, new MemberResponseDTO.Join(jwtToken), null);
     }
 
     // ================== 로그인 (토큰 발급) ==================
@@ -53,27 +55,27 @@ public class MemberService {
      * @param dto 로그인 요청 DTO
      * @return 로그인 결과 및 토큰 정보
      */
-    public MemberLoginOutput loginAndIssueToken(MemberRequestDTO.Login dto) {
+    public MemberLoginResult loginAndIssueToken(MemberRequestDTO.Login dto) {
         Member member = memberRepository.findByEmail(dto.email()).orElse(null);
         if (member == null) {
-            return MemberLoginOutput.of(MemberLoginOutput.Status.USER_NOT_FOUND, null, null);
+            return MemberLoginResult.of(MemberLoginResult.Status.USER_NOT_FOUND, null, null);
         }
         if (!passwordEncoder.matches(dto.password(), member.getPassword())) {
-            return MemberLoginOutput.of(MemberLoginOutput.Status.INVALID_PASSWORD, null, null);
+            return MemberLoginResult.of(MemberLoginResult.Status.INVALID_PASSWORD, null, null);
         }
         String jwtToken = jwtTokenProvider.createToken(List.of(Role.MEMBER), member.getUuid());
-        return MemberLoginOutput.of(
-                MemberLoginOutput.Status.SUCCESS,
+        return MemberLoginResult.of(
+                MemberLoginResult.Status.SUCCESS,
                 new MemberResponseDTO.Login(member.getName(), jwtToken),
                 null);
     }
 
-    public MemberProfileOutput getProfile(String uuid) {
+    public MemberProfileResult getProfile(String uuid) {
         Member member = memberRepository.findByUuid(uuid).orElse(null);
         if (member == null) {
-            return MemberProfileOutput.of(MemberProfileOutput.Status.NOT_FOUND, null, null);
+            return MemberProfileResult.of(MemberProfileResult.Status.NOT_FOUND, null, null);
         }
         MemberResponseDTO.Profile profile = memberMapper.toProfileDTO(member);
-        return MemberProfileOutput.of(MemberProfileOutput.Status.SUCCESS, profile, null);
+        return MemberProfileResult.of(MemberProfileResult.Status.SUCCESS, profile, null);
     }
 }

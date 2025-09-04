@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class MemberRequestDTO {
+    @Schema(name = "MemberRequestJoin", description = "멤버 회원가입 요청 DTO")
     public record Join(
             @Schema(
                             description = "회원 이름",
@@ -34,7 +35,7 @@ public final class MemberRequestDTO {
                     @NotBlank(message = "비밀번호는 필수입니다.")
                     String password) {}
 
-    @Schema(name = "MemberRequestLogin", description = "로그인 요청 DTO")
+    @Schema(name = "MemberRequestLogin", description = "멤버 로그인 요청 DTO")
     public record Login(
             @Schema(
                             description = "이메일",

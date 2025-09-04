@@ -1,8 +1,8 @@
 package com.solicare.app.backend.application.controller;
 
 import com.solicare.app.backend.application.dto.request.PushRequestDTO;
-import com.solicare.app.backend.domain.dto.output.device.DeviceManageOutput;
-import com.solicare.app.backend.domain.dto.output.push.SendOutputDetail;
+import com.solicare.app.backend.domain.dto.device.DeviceManageResult;
+import com.solicare.app.backend.domain.dto.push.PushDeliveryResult;
 import com.solicare.app.backend.domain.enums.Push;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.service.DeviceService;
@@ -27,16 +27,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "FCM", description = "FCM(Firebase Cloud Message) 관련 API")
+@Tag(name = "Firebase", description = "Google Firebase 관련 API")
 @RestController
-@RequestMapping("/api/push/fcm")
+@RequestMapping("/api/firebase")
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class FcmController {
+public class FirebaseController {
     private final DeviceService deviceService;
     private final FirebaseService firebaseService;
     private final ApiResponseFactory apiResponseFactory;
 
-    @PostMapping("/{token}")
+    @PostMapping("/fcm/{token}")
     @Operation(summary = "FCM 푸시 전송", description = "특정 토큰으로 FCM 푸시를 전송합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -54,7 +54,7 @@ public class FcmController {
                     PushRequestDTO.Send fcmSendRequestDTO) {
         if (authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            SendOutputDetail detail =
+            PushDeliveryResult detail =
                     firebaseService.sendMessageTo(
                             token, fcmSendRequestDTO.title(), fcmSendRequestDTO.body());
             return apiResponseFactory.onSuccess(detail);
@@ -69,13 +69,13 @@ public class FcmController {
         if (!deviceService.isDeviceOwner(role, authentication.getName(), Push.FCM, token)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 기기만 전송 가능합니다.");
         }
-        SendOutputDetail detail =
+        PushDeliveryResult detail =
                 firebaseService.sendMessageTo(
                         token, fcmSendRequestDTO.title(), fcmSendRequestDTO.body());
         return apiResponseFactory.onSuccess(detail);
     }
 
-    @PutMapping("/{token}")
+    @PutMapping("/fcm/{token}")
     @Operation(summary = "FCM 토큰 등록", description = "FCM 토큰을 등록합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -86,11 +86,11 @@ public class FcmController {
                 description = "자격 증명 실패")
     })
     public ResponseEntity<ApiResponse<Object>> fcmRegister(@PathVariable String token) {
-        DeviceManageOutput result = deviceService.create(Push.FCM, token);
+        DeviceManageResult result = deviceService.create(Push.FCM, token);
         return apiResponseFactory.onSuccess(result);
     }
 
-    @DeleteMapping("/{token}")
+    @DeleteMapping("/fcm/{token}")
     @Operation(summary = "FCM 토큰 해제", description = "FCM 토큰을 해제합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -101,7 +101,7 @@ public class FcmController {
                 description = "자격 증명 실패")
     })
     public ResponseEntity<ApiResponse<Object>> fcmUnregister(@PathVariable String token) {
-        DeviceManageOutput result = deviceService.delete(Push.FCM, token);
+        DeviceManageResult result = deviceService.delete(Push.FCM, token);
         return apiResponseFactory.onSuccess(result);
     }
 }

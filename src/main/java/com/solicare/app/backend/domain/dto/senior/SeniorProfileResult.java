@@ -1,17 +1,16 @@
-// SeniorLoginOutput.java
-package com.solicare.app.backend.domain.dto.output.senior;
+package com.solicare.app.backend.domain.dto.senior;
 
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
-import com.solicare.app.backend.domain.dto.output.OperationOutput;
+import com.solicare.app.backend.domain.dto.ServiceResult;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class SeniorLoginOutput implements OperationOutput {
+public class SeniorProfileResult implements ServiceResult {
     private Status status;
-    private SeniorResponseDTO.Login response;
+    private SeniorResponseDTO.Profile response;
     private Exception exception;
 
     @Override
@@ -21,8 +20,7 @@ public class SeniorLoginOutput implements OperationOutput {
 
     public enum Status {
         SUCCESS,
-        SENIOR_NOT_FOUND,
-        INVALID_PASSWORD,
+        NOT_FOUND,
         ERROR
     }
 }
