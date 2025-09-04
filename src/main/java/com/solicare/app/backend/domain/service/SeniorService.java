@@ -3,7 +3,7 @@ package com.solicare.app.backend.domain.service;
 import com.solicare.app.backend.application.dto.request.SeniorRequestDTO;
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
 import com.solicare.app.backend.application.mapper.SeniorMapper;
-import com.solicare.app.backend.domain.dto.senior.SeniorCreateResult;
+import com.solicare.app.backend.domain.dto.senior.SeniorJoinResult;
 import com.solicare.app.backend.domain.dto.senior.SeniorLoginResult;
 import com.solicare.app.backend.domain.dto.senior.SeniorProfileResult;
 import com.solicare.app.backend.domain.entity.Senior;
@@ -31,17 +31,16 @@ public class SeniorService {
     private final SeniorMapper seniorMapper;
 
     /** Senior 회원 가입 및 JWT 토큰 발급 */
-    public SeniorCreateResult createAndIssueToken(SeniorRequestDTO.Create dto) {
+    public SeniorJoinResult createAndIssueToken(SeniorRequestDTO.Join dto) {
         if (seniorRepository.existsByUserId(dto.userId())) {
-            return SeniorCreateResult.of(
-                    SeniorCreateResult.Status.SENIOR_ALREADY_EXISTS, null, null);
+            return SeniorJoinResult.of(SeniorJoinResult.Status.SENIOR_ALREADY_EXISTS, null, null);
         }
         Senior newSenior = seniorMapper.toEntity(dto);
         seniorRepository.save(newSenior);
 
         String jwtToken = jwtTokenProvider.createToken(List.of(Role.SENIOR), newSenior.getUuid());
-        return SeniorCreateResult.of(
-                SeniorCreateResult.Status.SUCCESS, new SeniorResponseDTO.Create(jwtToken), null);
+        return SeniorJoinResult.of(
+                SeniorJoinResult.Status.SUCCESS, new SeniorResponseDTO.Create(jwtToken), null);
     }
 
     /** Senior 로그인 및 JWT 토큰 발급 */

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class SeniorMapper {
     private final PasswordEncoder passwordEncoder;
 
-    public Senior toEntity(SeniorRequestDTO.Create dto) {
+    public Senior toEntity(SeniorRequestDTO.Join dto) {
         return Senior.builder()
                 .userId(dto.userId())
                 .password(passwordEncoder.encode(dto.password())) // 비밀번호 암호화

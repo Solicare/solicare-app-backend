@@ -9,7 +9,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(staticName = "of")
-public class SeniorCreateResult implements ServiceResult {
+public class SeniorJoinResult implements ServiceResult {
     private Status status;
     private SeniorResponseDTO.Create response;
     private Exception exception;

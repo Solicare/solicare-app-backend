@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SeniorRequestDTO {
     @Schema(name = "SeniorRequestCreate", description = "시니어 회원가입 요청 DTO")
-    public record Create(
+    public record Join(
             @Schema(
                             description = "사용자 ID",
                             example = "senioruser",
