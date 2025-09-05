@@ -21,6 +21,7 @@ public class MemberJoinResult implements ServiceResult {
     public enum Status {
         SUCCESS,
         USER_ALREADY_EXISTS,
+        PHONE_ALREADY_EXISTS,
         ERROR
     }
 }

@@ -17,6 +17,7 @@ public class DeviceManageResult implements ServiceResult {
     public boolean isSuccess() {
         return status == Status.ENABLED
                 || status == Status.CREATED
+                || status == Status.UPDATED
                 || status == Status.DELETED
                 || status == Status.LINKED
                 || status == Status.UNLINKED;
@@ -25,10 +26,12 @@ public class DeviceManageResult implements ServiceResult {
     public enum Status {
         ENABLED,
         CREATED,
+        UPDATED,
         DELETED,
         ALREADY_EXISTS,
         LINKED,
         UNLINKED,
+        ALREADY_LINKED,
         DEVICE_NOT_FOUND,
         MEMBER_NOT_FOUND,
         SENIOR_NOT_FOUND,

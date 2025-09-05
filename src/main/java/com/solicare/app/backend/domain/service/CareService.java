@@ -74,7 +74,7 @@ public class CareService {
         }
     }
 
-    public CareLinkResult<MemberResponseDTO.Profile> linkSeniorToMember(
+    public CareLinkResult<SeniorResponseDTO.Profile> linkSeniorToMember(
             String memberUuid, MemberRequestDTO.LinkSenior linkDto) {
         try {
             Member member =
@@ -95,13 +95,13 @@ public class CareService {
             }
             careRelationRepository.save(Care.builder().member(member).senior(senior).build());
             return CareLinkResult.of(
-                    CareLinkResult.Status.SUCCESS, memberMapper.toProfileDTO(member), null);
+                    CareLinkResult.Status.SUCCESS, seniorMapper.toProfileDTO(senior), null);
         } catch (Exception e) {
             return CareLinkResult.of(CareLinkResult.Status.ERROR, null, e);
         }
     }
 
-    public CareLinkResult<SeniorResponseDTO.Profile> linkMemberToSenior(
+    public CareLinkResult<MemberResponseDTO.Profile> linkMemberToSenior(
             String seniorUuid, SeniorRequestDTO.LinkMember linkDto) {
         try {
             Member member =
@@ -123,7 +123,7 @@ public class CareService {
 
             careRelationRepository.save(Care.builder().member(member).senior(senior).build());
             return CareLinkResult.of(
-                    CareLinkResult.Status.SUCCESS, seniorMapper.toProfileDTO(senior), null);
+                    CareLinkResult.Status.SUCCESS, memberMapper.toProfileDTO(member), null);
         } catch (Exception e) {
             return CareLinkResult.of(CareLinkResult.Status.ERROR, null, e);
         }

@@ -70,7 +70,8 @@ public class SecurityConfig {
                                                 "/api/member/join",
                                                 "/api/member/login",
                                                 "/api/senior/join",
-                                                "/api/senior/login")
+                                                "/api/senior/login",
+                                                "/api/firebase/fcm/renew")
                                         .permitAll()
                                         .requestMatchers(HttpMethod.PUT, "/api/firebase/fcm/*")
                                         .permitAll()

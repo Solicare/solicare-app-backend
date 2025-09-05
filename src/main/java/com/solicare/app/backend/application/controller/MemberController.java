@@ -2,7 +2,6 @@ package com.solicare.app.backend.application.controller;
 
 import com.solicare.app.backend.application.dto.request.MemberRequestDTO;
 import com.solicare.app.backend.application.dto.request.PushRequestDTO;
-import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
 import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
 import com.solicare.app.backend.domain.dto.care.CareLinkResult;
 import com.solicare.app.backend.domain.dto.care.CareQueryResult;
@@ -42,10 +41,10 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberController {
     private final CareService careService;
+    private final PushService pushService;
     private final DeviceService deviceService;
     private final MemberService memberService;
     private final ApiResponseFactory apiResponseFactory;
-    private final PushService pushService;
 
     @Operation(summary = "멤버 회원가입", description = "새로운 멤버를 등록합니다.")
     @ApiResponses({
@@ -64,7 +63,7 @@ public class MemberController {
             @Schema(name = "MemberRequestJoin", description = "회원가입 요청 DTO") @RequestBody @Valid
                     MemberRequestDTO.Join memberJoinRequestDTO) {
         MemberJoinResult result = memberService.createAndIssueToken(memberJoinRequestDTO);
-        // TODO: respond with appropriate status based on result not MemberJoinOutput
+        // TODO: respond with appropriate status based on result not MemberJoinResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -81,7 +80,7 @@ public class MemberController {
     public ResponseEntity<ApiResponse<MemberLoginResult>> memberLogin(
             @RequestBody @Valid MemberRequestDTO.Login memberLoginRequestDTO) {
         MemberLoginResult result = memberService.loginAndIssueToken(memberLoginRequestDTO);
-        // TODO: respond with appropriate status based on result not MemberLoginOutput
+        // TODO: respond with appropriate status based on result not MemberLoginResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -107,7 +106,7 @@ public class MemberController {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 정보만 조회 가능합니다.");
         }
         MemberProfileResult result = memberService.getProfile(memberUuid);
-        // TODO: respond with appropriate status based on result not MemberProfileOutput
+        // TODO: respond with appropriate status based on result not MemberProfileResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -128,7 +127,7 @@ public class MemberController {
         CareQueryResult<SeniorResponseDTO.Profile> result =
                 careService.querySeniorByMember(memberUuid);
         // TODO: respond with appropriate status based on result not
-        //  CareQueryOutput<SeniorResponseDTO.Profile>
+        //  CareQueryResult<SeniorResponseDTO.Profile>
         return apiResponseFactory.onSuccess(result.getResponse());
     }
 
@@ -146,7 +145,7 @@ public class MemberController {
             return apiResponseFactory.onFailure(
                     ApiStatus._FORBIDDEN, "본인만 자신의 모니터링 대상을 추가할 수 있습니다");
         }
-        CareLinkResult<MemberResponseDTO.Profile> result =
+        CareLinkResult<SeniorResponseDTO.Profile> result =
                 careService.linkSeniorToMember(memberUuid, requestDto);
         if (!result.isSuccess()) {
             ApiStatus status =
@@ -157,7 +156,7 @@ public class MemberController {
                         default -> ApiStatus._INTERNAL_SERVER_ERROR;
                     };
             return apiResponseFactory.onFailure(status, result.getStatus().name());
-            // TODO: improve body content not just status name, maybe with message field on enum
+            // TODO: improve message content not just status name, maybe with message field on enum
         }
         return apiResponseFactory.onSuccess(result.getResponse());
     }
@@ -193,7 +192,7 @@ public class MemberController {
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스 목록을 조회할 수 있습니다");
         }
         DeviceQueryResult result = deviceService.getDevices(Role.MEMBER, memberUuid);
-        // TODO: respond with appropriate status based on result not DeviceQueryOutput
+        // TODO: respond with appropriate status based on result not DeviceQueryResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -210,8 +209,8 @@ public class MemberController {
         if (!isAdmin && !authentication.getName().equals(memberUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인만 자신의 디바이스를 추가할 수 있습니다");
         }
-        DeviceManageResult result = deviceService.link(deviceUuid, Role.MEMBER, memberUuid);
-        // TODO: respond with appropriate status based on result not DeviceManageOutput
+        DeviceManageResult result = deviceService.link(Role.MEMBER, memberUuid, deviceUuid);
+        // TODO: respond with appropriate status based on result not DeviceManageResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -230,8 +229,13 @@ public class MemberController {
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스에 푸시를 보낼 수 있습니다");
         }
         PushBatchProcessResult result =
-                pushService.push(Role.MEMBER, memberUuid, requestDTO.title(), requestDTO.body());
-        // TODO: respond with appropriate status based on result not PushDeliveryOutput
+                pushService.pushBatch(
+                        Role.MEMBER,
+                        memberUuid,
+                        requestDTO.channel(),
+                        requestDTO.title(),
+                        requestDTO.message());
+        // TODO: respond with appropriate status based on result not PushDeliveryResult
         return apiResponseFactory.onSuccess(result);
     }
 

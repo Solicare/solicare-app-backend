@@ -41,6 +41,9 @@ public class MemberService {
         if (memberRepository.existsByEmail(dto.email())) {
             return MemberJoinResult.of(MemberJoinResult.Status.USER_ALREADY_EXISTS, null, null);
         }
+        if (memberRepository.existsByPhoneNumber(dto.phoneNumber())) {
+            return MemberJoinResult.of(MemberJoinResult.Status.PHONE_ALREADY_EXISTS, null, null);
+        }
         Member newMember = memberMapper.toEntity(dto);
         memberRepository.save(newMember);
         String jwtToken = jwtTokenProvider.createToken(List.of(Role.MEMBER), newMember.getUuid());

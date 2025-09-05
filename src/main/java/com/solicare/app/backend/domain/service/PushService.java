@@ -1,10 +1,14 @@
 package com.solicare.app.backend.domain.service;
 
 import com.solicare.app.backend.application.dto.res.DeviceResponseDTO;
+import com.solicare.app.backend.application.enums.PushChannel;
+import com.solicare.app.backend.application.mapper.DeviceMapper;
 import com.solicare.app.backend.domain.dto.push.PushBatchProcessResult;
 import com.solicare.app.backend.domain.dto.push.PushDeliveryResult;
+import com.solicare.app.backend.domain.entity.Device;
 import com.solicare.app.backend.domain.enums.Push;
 import com.solicare.app.backend.domain.enums.Role;
+import com.solicare.app.backend.domain.repository.DeviceRepository;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
 
@@ -16,28 +20,68 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class PushService {
-    private final DeviceService deviceService;
     private final FirebaseService firebaseService;
     private final MemberRepository memberRepository;
     private final SeniorRepository seniorRepository;
+    private final DeviceRepository deviceRepository;
+    private final DeviceMapper deviceMapper;
 
-    public PushBatchProcessResult push(Role role, String uuid, String title, String body) {
+    public PushDeliveryResult sendPushToDevice(
+            String deviceUuid, PushChannel channel, String title, String message) {
+        Optional<Device> deviceOpt = deviceRepository.findByUuid(deviceUuid);
+        if (deviceOpt.isEmpty()) {
+            return PushDeliveryResult.of(
+                    PushDeliveryResult.Status.UNAVAILABLE,
+                    new IllegalArgumentException("Device not found"));
+        }
+        if (Objects.requireNonNull(deviceOpt.get().getType()) == Push.FCM) {
+            return firebaseService.sendMessageTo(
+                    deviceOpt.get().getToken(), title, toFcmBody(channel, message));
+        }
+
+        return PushDeliveryResult.of(
+                PushDeliveryResult.Status.ERROR,
+                new IllegalArgumentException(
+                        "Unsupported push type: " + deviceOpt.get().getType()));
+    }
+
+    private String toFcmBody(PushChannel channel, String message) {
+        return "{\"channel\":\"" + channel.name() + "\",\"message\":\"" + message + "\"}";
+    }
+
+    public PushBatchProcessResult pushBatch(
+            Role role, String uuid, PushChannel channel, String title, String message) {
         if (!existsByRoleAndUuid(role, uuid)) {
             return PushBatchProcessResult.of(null, PushBatchProcessResult.Status.NOT_FOUND);
         }
-        List<PushDeliveryResult> PushDeliveryResultList =
-                deviceService.getDevices(role, uuid).getResponse().stream()
-                        .filter(DeviceResponseDTO.Info::enabled)
+
+        List<DeviceResponseDTO.Info> enabledDevices =
+                switch (role) {
+                    case MEMBER ->
+                            deviceRepository.findByMember_Uuid(uuid).stream()
+                                    .map(deviceMapper::from)
+                                    .collect(Collectors.toList());
+                    case SENIOR ->
+                            deviceRepository.findBySenior_Uuid(uuid).stream()
+                                    .map(deviceMapper::from)
+                                    .collect(Collectors.toList());
+                    default -> throw new IllegalArgumentException("Invalid role: " + role);
+                };
+
+        List<PushDeliveryResult> pushDeliveryResults =
+                enabledDevices.stream()
                         .map(
-                                (device) -> {
+                                device -> {
                                     if (Objects.requireNonNull(device.type()) == Push.FCM) {
                                         return firebaseService.sendMessageTo(
-                                                device.token(), title, body);
+                                                device.token(), title, toFcmBody(channel, message));
                                     }
                                     return PushDeliveryResult.of(
                                             PushDeliveryResult.Status.ERROR,
@@ -45,7 +89,7 @@ public class PushService {
                                                     "Unsupported push type: " + device.type()));
                                 })
                         .toList();
-        return PushBatchProcessResult.of(PushDeliveryResultList).setStatusByDetails();
+        return PushBatchProcessResult.of(pushDeliveryResults).setStatusByDetails();
     }
 
     // TODO: extract this method and remove duplicated code in Service classes

@@ -3,7 +3,6 @@ package com.solicare.app.backend.application.controller;
 import com.solicare.app.backend.application.dto.request.PushRequestDTO;
 import com.solicare.app.backend.application.dto.request.SeniorRequestDTO;
 import com.solicare.app.backend.application.dto.res.MemberResponseDTO;
-import com.solicare.app.backend.application.dto.res.SeniorResponseDTO;
 import com.solicare.app.backend.domain.dto.care.CareLinkResult;
 import com.solicare.app.backend.domain.dto.care.CareQueryResult;
 import com.solicare.app.backend.domain.dto.device.DeviceManageResult;
@@ -59,7 +58,7 @@ public class SeniorController {
     public ResponseEntity<ApiResponse<SeniorJoinResult>> seniorJoin(
             @RequestBody @Valid SeniorRequestDTO.Join seniorJoinRequestDTO) {
         SeniorJoinResult result = seniorService.createAndIssueToken(seniorJoinRequestDTO);
-        // TODO: respond with appropriate status based on result not SeniorCreateOutput
+        // TODO: respond with appropriate status based on result not SeniorCreateResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -76,7 +75,7 @@ public class SeniorController {
     public ResponseEntity<ApiResponse<SeniorLoginResult>> seniorLogin(
             @RequestBody @Valid SeniorRequestDTO.Login seniorLoginRequestDTO) {
         SeniorLoginResult result = seniorService.loginAndIssueToken(seniorLoginRequestDTO);
-        // TODO: respond with appropriate status based on result not SeniorLoginOutput
+        // TODO: respond with appropriate status based on result not SeniorLoginResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -100,7 +99,7 @@ public class SeniorController {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 정보만 조회 가능합니다.");
         }
         SeniorProfileResult result = seniorService.getProfile(seniorUuid);
-        // TODO: respond with appropriate status based on result not SeniorProfileOutput
+        // TODO: respond with appropriate status based on result not SeniorProfileResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -121,7 +120,7 @@ public class SeniorController {
         CareQueryResult<MemberResponseDTO.Profile> result =
                 careService.queryMemberBySenior(seniorUuid);
         // TODO: respond with appropriate status based on result not
-        //  CareQueryOutput<MemberResponseDTO.Profile>
+        //  CareQueryResult<MemberResponseDTO.Profile>
         return apiResponseFactory.onSuccess(result.getResponse());
     }
 
@@ -138,7 +137,7 @@ public class SeniorController {
         if (!isAdmin && !authentication.getName().equals(seniorUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인만 자신의 보호자를 추가할 수 있습니다");
         }
-        CareLinkResult<SeniorResponseDTO.Profile> result =
+        CareLinkResult<MemberResponseDTO.Profile> result =
                 careService.linkMemberToSenior(seniorUuid, requestDto);
         if (!result.isSuccess()) {
             ApiStatus status =
@@ -149,7 +148,7 @@ public class SeniorController {
                         default -> ApiStatus._INTERNAL_SERVER_ERROR;
                     };
             return apiResponseFactory.onFailure(status, result.getStatus().name());
-            // TODO: improve body content not just status name, maybe with message field on enum
+            // TODO: improve message content not just status name, maybe with message field on enum
         }
         return apiResponseFactory.onSuccess(result.getResponse());
     }
@@ -187,7 +186,7 @@ public class SeniorController {
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스 목록을 조회할 수 있습니다");
         }
         DeviceQueryResult result = deviceService.getDevices(Role.SENIOR, seniorUuid);
-        // TODO: respond with appropriate status based on result not DeviceQueryOutput
+        // TODO: respond with appropriate status based on result not DeviceQueryResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -204,8 +203,8 @@ public class SeniorController {
         if (!isAdmin && !authentication.getName().equals(seniorUuid)) {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인만 자신의 디바이스를 추가할 수 있습니다");
         }
-        DeviceManageResult result = deviceService.link(deviceUuid, Role.SENIOR, seniorUuid);
-        // TODO: respond with appropriate status based on result not DeviceManageOutput
+        DeviceManageResult result = deviceService.link(Role.SENIOR, seniorUuid, deviceUuid);
+        // TODO: respond with appropriate status based on result not DeviceManageResult
         return apiResponseFactory.onSuccess(result);
     }
 
@@ -224,8 +223,13 @@ public class SeniorController {
                     ApiStatus._FORBIDDEN, "본인만 자신의 디바이스에 푸시를 보낼 수 있습니다");
         }
         PushBatchProcessResult result =
-                pushService.push(Role.SENIOR, seniorUuid, requestDTO.title(), requestDTO.body());
-        // TODO: respond with appropriate status based on result not PushDeliveryOutput
+                pushService.pushBatch(
+                        Role.SENIOR,
+                        seniorUuid,
+                        requestDTO.channel(),
+                        requestDTO.title(),
+                        requestDTO.message());
+        // TODO: respond with appropriate status based on result not PushDeliveryResult
         return apiResponseFactory.onSuccess(result);
     }
 
