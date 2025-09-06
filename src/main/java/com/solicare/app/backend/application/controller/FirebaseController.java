@@ -100,12 +100,11 @@ public class FirebaseController {
             @NonNull Authentication authentication,
             @PathVariable String token,
             @Schema(name = "FcmSendRequest", description = "FCM 푸시 요청 DTO") @RequestBody @Valid
-                    PushRequestDTO.Send fcmSendRequestDTO) {
+                    PushRequestDTO.Send dto) {
         if (authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             PushDeliveryResult detail =
-                    firebaseService.sendMessageTo(
-                            token, fcmSendRequestDTO.title(), fcmSendRequestDTO.message());
+                    firebaseService.sendMessageTo(token, dto.channel(), dto.title(), dto.message());
             return apiResponseFactory.onSuccess(detail);
         }
         Role role =
@@ -119,8 +118,7 @@ public class FirebaseController {
             return apiResponseFactory.onFailure(ApiStatus._FORBIDDEN, "본인의 기기만 전송 가능합니다.");
         }
         PushDeliveryResult detail =
-                firebaseService.sendMessageTo(
-                        token, fcmSendRequestDTO.title(), fcmSendRequestDTO.message());
+                firebaseService.sendMessageTo(token, dto.channel(), dto.title(), dto.message());
         // TODO: respond with appropriate status based on result not PushDeliveryResult
         return apiResponseFactory.onSuccess(detail);
     }

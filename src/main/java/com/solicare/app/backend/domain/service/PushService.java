@@ -43,17 +43,13 @@ public class PushService {
         }
         if (Objects.requireNonNull(deviceOpt.get().getType()) == Push.FCM) {
             return firebaseService.sendMessageTo(
-                    deviceOpt.get().getToken(), title, toFcmBody(channel, message));
+                    deviceOpt.get().getToken(), channel, title, message);
         }
 
         return PushDeliveryResult.of(
                 PushDeliveryResult.Status.ERROR,
                 new IllegalArgumentException(
                         "Unsupported push type: " + deviceOpt.get().getType()));
-    }
-
-    private String toFcmBody(PushChannel channel, String message) {
-        return "{\"channel\":\"" + channel.name() + "\",\"message\":\"" + message + "\"}";
     }
 
     public PushBatchProcessResult pushBatch(
@@ -81,7 +77,7 @@ public class PushService {
                                 device -> {
                                     if (Objects.requireNonNull(device.type()) == Push.FCM) {
                                         return firebaseService.sendMessageTo(
-                                                device.token(), title, toFcmBody(channel, message));
+                                                device.token(), channel, title, message);
                                     }
                                     return PushDeliveryResult.of(
                                             PushDeliveryResult.Status.ERROR,
