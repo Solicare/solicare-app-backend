@@ -33,14 +33,14 @@ public class SeniorService {
     /** Senior 회원 가입 및 JWT 토큰 발급 */
     public SeniorJoinResult createAndIssueToken(SeniorRequestDTO.Join dto) {
         if (seniorRepository.existsByUserId(dto.userId())) {
-            return SeniorJoinResult.of(SeniorJoinResult.Status.SENIOR_ALREADY_EXISTS, null, null);
+            return SeniorJoinResult.of(SeniorJoinResult.Status.ALREADY_TAKEN_USERID, null, null);
         }
         Senior newSenior = seniorMapper.toEntity(dto);
         seniorRepository.save(newSenior);
 
         String jwtToken = jwtTokenProvider.createToken(List.of(Role.SENIOR), newSenior.getUuid());
         return SeniorJoinResult.of(
-                SeniorJoinResult.Status.SUCCESS, new SeniorResponseDTO.Create(jwtToken), null);
+                SeniorJoinResult.Status.SUCCESS, new SeniorResponseDTO.Join(jwtToken), null);
     }
 
     /** Senior 로그인 및 JWT 토큰 발급 */

@@ -2,9 +2,10 @@ package com.solicare.app.backend.application.dto.res;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MemberResponseDTO {
     @Schema(name = "MemberJoinResponse", description = "회원가입 응답 DTO")
     public record Join(@Schema(description = "JWT 토큰") String token) {}

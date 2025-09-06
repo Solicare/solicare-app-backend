@@ -5,6 +5,10 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -12,7 +16,9 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 
+@Slf4j
 @Configuration
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class FirebaseConfig {
     @Bean
     public FirebaseMessaging firebaseMessaging() throws IOException {

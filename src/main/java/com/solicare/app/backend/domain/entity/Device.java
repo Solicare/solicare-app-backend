@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Device {
@@ -18,7 +18,7 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String uuid;
 
-    @Builder.Default @Column private boolean enabled = true;
+    //    @Builder.Default @Column private boolean enabled = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -77,8 +77,9 @@ public class Device {
         return this;
     }
 
-    public Device setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public Device renew(String token) {
+        this.token = token;
+        this.touch();
         return this;
     }
 }

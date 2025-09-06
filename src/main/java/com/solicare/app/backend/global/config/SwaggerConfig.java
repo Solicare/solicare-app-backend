@@ -7,6 +7,8 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,7 @@ import java.util.Optional;
 
 @Slf4j
 @Configuration
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class SwaggerConfig {
     @Bean
     public OpenAPI solicareAPI() {
