@@ -2,11 +2,15 @@ package com.solicare.app.backend.global.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 
-import org.springframework.stereotype.Controller;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Hidden
-@Controller
+@RestController
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class DocsRedirectController {
     @GetMapping("/docs")
     public String redirectToSwagger() {

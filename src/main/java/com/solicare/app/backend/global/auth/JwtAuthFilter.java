@@ -1,11 +1,11 @@
 package com.solicare.app.backend.global.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.solicare.app.backend.application.factory.ApiResponseFactory;
 import com.solicare.app.backend.domain.dto.auth.JwtValidateResult;
 import com.solicare.app.backend.domain.enums.Role;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
-import com.solicare.app.backend.global.res.ApiResponse;
 import com.solicare.app.backend.global.res.ApiStatus;
 
 import io.jsonwebtoken.Claims;
@@ -38,6 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final MemberRepository memberRepository;
     private final SeniorRepository seniorRepository;
     private final ObjectMapper objectMapper;
+    private final ApiResponseFactory apiResponseFactory;
 
     @Override
     protected void doFilterInternal(
@@ -133,12 +134,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
      */
     private void sendErrorResponse(HttpServletResponse response, String message)
             throws IOException {
-        ApiStatus errorStatus = ApiStatus._UNAUTHORIZED;
-        response.setStatus(errorStatus.getHttpStatus().value());
+        response.setStatus(ApiStatus._UNAUTHORIZED.getHttpStatus().value());
         response.setContentType("application/json;charset=UTF-8");
         String jsonResponse =
                 objectMapper.writeValueAsString(
-                        ApiResponse.of(false, errorStatus.getCode(), message, null));
+                        apiResponseFactory.onFailure(ApiStatus._UNAUTHORIZED, message));
         response.getWriter().write(jsonResponse);
     }
 

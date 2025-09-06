@@ -14,6 +14,7 @@ import com.solicare.app.backend.domain.repository.DeviceRepository;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class DeviceService {
     private final PushService pushService;
     private final DeviceMapper deviceMapper;
@@ -191,7 +192,4 @@ public class DeviceService {
             return DeviceManageResult.of(DeviceManageResult.Status.ERROR, null, e);
         }
     }
-
-    // TODO: handle specific exceptions (e.g. EntityNotFound -> ApiException with 404 status)
-    //  handled by controller advice(ExceptionHandler)
 }

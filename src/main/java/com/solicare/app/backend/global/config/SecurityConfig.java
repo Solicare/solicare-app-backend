@@ -1,11 +1,11 @@
 package com.solicare.app.backend.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.solicare.app.backend.application.factory.ApiResponseFactory;
 import com.solicare.app.backend.domain.repository.MemberRepository;
 import com.solicare.app.backend.domain.repository.SeniorRepository;
 import com.solicare.app.backend.global.auth.JwtAuthFilter;
 import com.solicare.app.backend.global.auth.JwtTokenProvider;
-import com.solicare.app.backend.global.res.ApiResponse;
 import com.solicare.app.backend.global.res.ApiStatus;
 
 import lombok.AccessLevel;
@@ -39,13 +39,20 @@ public class SecurityConfig {
     public JwtAuthFilter jwtAuthFilter(
             JwtTokenProvider jwtTokenProvider,
             MemberRepository memberRepository,
-            SeniorRepository seniorRepository) {
-        return JwtAuthFilter.of(jwtTokenProvider, memberRepository, seniorRepository, objectMapper);
+            SeniorRepository seniorRepository,
+            ApiResponseFactory apiResponseFactory) {
+        return JwtAuthFilter.of(
+                jwtTokenProvider,
+                memberRepository,
+                seniorRepository,
+                objectMapper,
+                apiResponseFactory);
     }
 
     @Bean
     public SecurityFilterChain apiSecurityFilterChain(
-            HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+            HttpSecurity http, JwtAuthFilter jwtAuthFilter, ApiResponseFactory apiResponseFactory)
+            throws Exception {
         return http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -97,15 +104,10 @@ public class SecurityConfig {
                                                     response.getWriter()
                                                             .write(
                                                                     objectMapper.writeValueAsString(
-                                                                            ApiResponse.of(
-                                                                                    false,
-                                                                                    ApiStatus
-                                                                                            ._UNAUTHORIZED
-                                                                                            .getCode(),
-                                                                                    ApiStatus
-                                                                                            ._UNAUTHORIZED
-                                                                                            .getMessage(),
-                                                                                    null)));
+                                                                            apiResponseFactory
+                                                                                    .onStatus(
+                                                                                            ApiStatus
+                                                                                                    ._UNAUTHORIZED)));
                                                 })
                                         .accessDeniedHandler(
                                                 (request, response, accessDeniedException) -> {
@@ -123,15 +125,10 @@ public class SecurityConfig {
                                                     response.getWriter()
                                                             .write(
                                                                     objectMapper.writeValueAsString(
-                                                                            ApiResponse.of(
-                                                                                    false,
-                                                                                    ApiStatus
-                                                                                            ._FORBIDDEN
-                                                                                            .getCode(),
-                                                                                    ApiStatus
-                                                                                            ._FORBIDDEN
-                                                                                            .getMessage(),
-                                                                                    null)));
+                                                                            apiResponseFactory
+                                                                                    .onStatus(
+                                                                                            ApiStatus
+                                                                                                    ._FORBIDDEN)));
                                                 }))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

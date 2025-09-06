@@ -129,6 +129,4 @@ public class CareService {
         }
     }
     // TODO: refactor duplicate code above, use private methods to reduce redundancy
-    // TODO: handle specific exceptions (e.g. EntityNotFound -> ApiException with 404 status)
-    //  handled by controller advice(ExceptionHandler)
 }
